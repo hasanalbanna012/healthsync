@@ -4,19 +4,20 @@ import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'dart:io';
 import 'models/prescription.dart';
+import 'pages/home_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // Initialize Hive
   await Hive.initFlutter();
-  
+
   // Register Hive Adapter
   Hive.registerAdapter(PrescriptionAdapter());
-  
+
   // Open the box
   await Hive.openBox<Prescription>('prescriptions');
-  
+
   runApp(const MyApp());
 }
 
@@ -30,7 +31,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
       ),
-      home: const PrescriptionPage(),
+      home: const HomePage(),
     );
   }
 }
@@ -43,7 +44,9 @@ class PrescriptionPage extends StatefulWidget {
 }
 
 class _PrescriptionPageState extends State<PrescriptionPage> {
-  final Box<Prescription> _prescriptionBox = Hive.box<Prescription>('prescriptions');
+  final Box<Prescription> _prescriptionBox = Hive.box<Prescription>(
+    'prescriptions',
+  );
   final ImagePicker _picker = ImagePicker();
 
   Future<void> _pickImage(ImageSource source) async {
