@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'dart:io';
 import 'models/prescription.dart';
@@ -17,6 +16,11 @@ void main() async {
 
   // Open the box
   await Hive.openBox<Prescription>('prescriptions');
+
+  // Preserve splash screen while app loads
+  await Future.delayed(
+    const Duration(seconds: 2),
+  ); // Optional: add delay to show splash longer
 
   runApp(const MyApp());
 }
