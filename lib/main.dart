@@ -3,6 +3,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'dart:io';
 import 'models/prescription.dart';
+import 'models/test_report.dart';
 import 'pages/home_page.dart';
 
 void main() async {
@@ -11,11 +12,13 @@ void main() async {
   // Initialize Hive
   await Hive.initFlutter();
 
-  // Register Hive Adapter
+  // Register Hive Adapters
   Hive.registerAdapter(PrescriptionAdapter());
+  Hive.registerAdapter(TestReportAdapter());
 
-  // Open the box
+  // Open the boxes
   await Hive.openBox<Prescription>('prescriptions');
+  await Hive.openBox<TestReport>('test_reports');
 
   // Preserve splash screen while app loads
   await Future.delayed(

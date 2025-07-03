@@ -3,7 +3,9 @@ import 'package:image_picker/image_picker.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'dart:io';
 import '../models/prescription.dart';
+import '../models/test_report.dart';
 import '../widgets/bottom_nav_bar.dart';
+import '../widgets/image_viewer.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -13,29 +15,37 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  final Box<Prescription> _prescriptionBox = Hive.box<Prescription>(
-    'prescriptions',
-  );
+  final Box<Prescription> _prescriptionBox = Hive.box<Prescription>('prescriptions');
+  final Box<TestReport> _testReportBox = Hive.box<TestReport>('test_reports');
   final ImagePicker _picker = ImagePicker();
   int _currentIndex = 0;
 
-  Future<void> _pickImage(ImageSource source) async {
+  Future<void> _pickImage(ImageSource source, {bool isTestReport = false}) async {
     try {
       final XFile? image = await _picker.pickImage(source: source);
       if (image != null) {
-        final prescription = Prescription(
-          id: DateTime.now().toString(),
-          imagePath: image.path,
-          dateAdded: DateTime.now(),
-        );
-        await _prescriptionBox.add(prescription);
+        if (isTestReport) {
+          final testReport = TestReport(
+            id: DateTime.now().toString(),
+            imagePath: image.path,
+            dateAdded: DateTime.now(),
+          );
+          await _testReportBox.add(testReport);
+        } else {
+          final prescription = Prescription(
+            id: DateTime.now().toString(),
+            imagePath: image.path,
+            dateAdded: DateTime.now(),
+          );
+          await _prescriptionBox.add(prescription);
+        }
       }
     } catch (e) {
       print('Error picking image: $e');
     }
   }
 
-  void _showAddPrescriptionDialog() {
+  void _showAddDialog({bool isTestReport = false}) {
     showModalBottomSheet(
       context: context,
       builder: (context) => Column(
@@ -46,7 +56,7 @@ class _HomePageState extends State<HomePage> {
             title: const Text('Take Photo'),
             onTap: () {
               Navigator.pop(context);
-              _pickImage(ImageSource.camera);
+              _pickImage(ImageSource.camera, isTestReport: isTestReport);
             },
           ),
           ListTile(
@@ -54,7 +64,7 @@ class _HomePageState extends State<HomePage> {
             title: const Text('Choose from Gallery'),
             onTap: () {
               Navigator.pop(context);
-              _pickImage(ImageSource.gallery);
+              _pickImage(ImageSource.gallery, isTestReport: isTestReport);
             },
           ),
         ],
@@ -94,6 +104,52 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  Widget _buildImageGrid(Box box, String title, VoidCallback onAddPressed, {bool enableTextDetection = false}) {
+    return Scaffold(
+      appBar: AppBar(title: Text(title)),
+      body: GridView.builder(
+        padding: const EdgeInsets.all(8),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          crossAxisSpacing: 10,
+          mainAxisSpacing: 10,
+        ),
+        itemCount: box.length,
+        itemBuilder: (context, index) {
+          final item = box.getAt(index);
+          return GestureDetector(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ImageViewer(
+                    imagePath: item.imagePath,
+                    title: title,
+                    enableTextDetection: enableTextDetection,
+                  ),
+                ),
+              );
+            },
+            child: Container(
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.grey),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Image.file(
+                File(item.imagePath),
+                fit: BoxFit.cover,
+              ),
+            ),
+          );
+        },
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: onAddPressed,
+        child: const Icon(Icons.add),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -111,7 +167,23 @@ class _HomePageState extends State<HomePage> {
             _buildHomeSection('Medicine', Icons.medication, () {}),
             _buildHomeSection('Alarm', Icons.alarm, () {}),
             _buildHomeSection('Doctors', Icons.person_2, () {}),
-            _buildHomeSection('Test Reports', Icons.description, () {}),
+            _buildHomeSection('Test Reports', Icons.description, () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ValueListenableBuilder(
+                    valueListenable: _testReportBox.listenable(),
+                    builder: (context, Box<TestReport> box, _) {
+                      return _buildImageGrid(
+                        box,
+                        'Test Reports',
+                        () => _showAddDialog(isTestReport: true),
+                      );
+                    },
+                  ),
+                ),
+              );
+            }),
             _buildHomeSection('Prescriptions', Icons.medical_information, () {
               Navigator.push(
                 context,
@@ -119,35 +191,11 @@ class _HomePageState extends State<HomePage> {
                   builder: (context) => ValueListenableBuilder(
                     valueListenable: _prescriptionBox.listenable(),
                     builder: (context, Box<Prescription> box, _) {
-                      return Scaffold(
-                        appBar: AppBar(title: const Text('Prescriptions')),
-                        body: GridView.builder(
-                          padding: const EdgeInsets.all(8),
-                          gridDelegate:
-                              const SliverGridDelegateWithFixedCrossAxisCount(
-                                crossAxisCount: 2,
-                                crossAxisSpacing: 10,
-                                mainAxisSpacing: 10,
-                              ),
-                          itemCount: box.length,
-                          itemBuilder: (context, index) {
-                            final prescription = box.getAt(index);
-                            return Container(
-                              decoration: BoxDecoration(
-                                border: Border.all(color: Colors.grey),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Image.file(
-                                File(prescription!.imagePath),
-                                fit: BoxFit.cover,
-                              ),
-                            );
-                          },
-                        ),
-                        floatingActionButton: FloatingActionButton(
-                          onPressed: _showAddPrescriptionDialog,
-                          child: const Icon(Icons.add),
-                        ),
+                      return _buildImageGrid(
+                        box,
+                        'Prescriptions',
+                        () => _showAddDialog(),
+                        enableTextDetection: true,
                       );
                     },
                   ),
