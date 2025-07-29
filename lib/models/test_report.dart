@@ -13,9 +13,21 @@ class TestReport extends HiveObject {
   @HiveField(2)
   final DateTime dateAdded;
 
+  @HiveField(3)
+  String? testType;
+
+  @HiveField(4)
+  String? hospitalName;
+
+  @HiveField(5)
+  String? notes;
+
   TestReport({
     required this.id,
     required this.imagePath,
     required this.dateAdded,
+    this.testType,
+    this.hospitalName,
+    this.notes,
   });
 }

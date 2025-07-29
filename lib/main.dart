@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
+import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'dart:io';
 import 'models/prescription.dart';
 import 'models/test_report.dart';
+import 'models/alarm.dart';
 import 'pages/home_page.dart';
+import 'pages/alarm_ring_screen.dart';
+import 'theme/app_theme.dart';
+import 'services/navigation_service.dart';
+import 'services/alarm_service.dart';
+import 'repositories/alarm_repository.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -15,137 +20,78 @@ void main() async {
   // Register Hive Adapters
   Hive.registerAdapter(PrescriptionAdapter());
   Hive.registerAdapter(TestReportAdapter());
+  Hive.registerAdapter(AlarmAdapter());
+  Hive.registerAdapter(AlarmTypeAdapter());
 
   // Open the boxes
   await Hive.openBox<Prescription>('prescriptions');
   await Hive.openBox<TestReport>('test_reports');
+  await Hive.openBox<Alarm>('alarms');
 
-  // Preserve splash screen while app loads
-  await Future.delayed(
-    const Duration(seconds: 2),
-  ); // Optional: add delay to show splash longer
+  // Initialize alarm service
+  await AlarmService().initialize();
 
   runApp(const MyApp());
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'HealthSync',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
-      ),
-      home: const HomePage(),
-    );
-  }
+  State<MyApp> createState() => _MyAppState();
 }
 
-class PrescriptionPage extends StatefulWidget {
-  const PrescriptionPage({super.key});
+class _MyAppState extends State<MyApp> {
+  static const platform = MethodChannel('com.example.healthsync/navigation');
 
   @override
-  State<PrescriptionPage> createState() => _PrescriptionPageState();
-}
+  void initState() {
+    super.initState();
+    _setupNavigationListener();
+  }
 
-class _PrescriptionPageState extends State<PrescriptionPage> {
-  final Box<Prescription> _prescriptionBox = Hive.box<Prescription>(
-    'prescriptions',
-  );
-  final ImagePicker _picker = ImagePicker();
+  void _setupNavigationListener() {
+    platform.setMethodCallHandler((call) async {
+      if (call.method == 'showAlarmRing') {
+        final alarmId = call.arguments['alarmId'] as String?;
+        final alarmTitle = call.arguments['alarmTitle'] as String?;
+        final alarmDescription = call.arguments['alarmDescription'] as String?;
 
-  Future<void> _pickImage(ImageSource source) async {
+        if (alarmId != null) {
+          _showAlarmRingScreen(alarmId, alarmTitle, alarmDescription);
+        }
+      }
+    });
+  }
+
+  Future<void> _showAlarmRingScreen(
+      String alarmId, String? title, String? description) async {
     try {
-      final XFile? image = await _picker.pickImage(source: source);
-      if (image != null) {
-        final prescription = Prescription(
-          id: DateTime.now().toString(),
-          imagePath: image.path,
-          dateAdded: DateTime.now(),
+      // Get the alarm from repository
+      final alarmRepository = AlarmRepository();
+      final alarm = await alarmRepository.getAlarmById(alarmId);
+
+      if (alarm != null && NavigationService.context != null) {
+        // Navigate to alarm ring screen
+        Navigator.of(NavigationService.context!).push(
+          MaterialPageRoute(
+            builder: (context) => AlarmRingScreen(alarm: alarm),
+          ),
         );
-        await _prescriptionBox.add(prescription);
       }
     } catch (e) {
-      print('Error picking image: $e');
+      print('Error showing alarm ring screen: $e');
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('HealthSync'),
-        backgroundColor: Theme.of(context).colorScheme.primary,
-      ),
-      body: ValueListenableBuilder(
-        valueListenable: _prescriptionBox.listenable(),
-        builder: (context, Box<Prescription> box, _) {
-          return GridView.builder(
-            padding: const EdgeInsets.all(8),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              crossAxisSpacing: 10,
-              mainAxisSpacing: 10,
-            ),
-            itemCount: box.length,
-            itemBuilder: (context, index) {
-              final prescription = box.getAt(index);
-              return Container(
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Image.file(
-                  File(prescription!.imagePath),
-                  fit: BoxFit.cover,
-                ),
-              );
-            },
-          );
-        },
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.description),
-            label: 'Prescriptions',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.add),
-            label: 'Add Prescription',
-          ),
-        ],
-        onTap: (index) {
-          if (index == 1) {
-            showModalBottomSheet(
-              context: context,
-              builder: (context) => Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  ListTile(
-                    leading: const Icon(Icons.camera_alt),
-                    title: const Text('Take Photo'),
-                    onTap: () {
-                      Navigator.pop(context);
-                      _pickImage(ImageSource.camera);
-                    },
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.photo_library),
-                    title: const Text('Choose from Gallery'),
-                    onTap: () {
-                      Navigator.pop(context);
-                      _pickImage(ImageSource.gallery);
-                    },
-                  ),
-                ],
-              ),
-            );
-          }
-        },
-      ),
+    return MaterialApp(
+      title: 'HealthSync',
+      theme: AppTheme.lightTheme,
+      home: const HomePage(),
+      navigatorKey: NavigationService.navigatorKey,
+      debugShowCheckedModeBanner: false,
     );
   }
 }

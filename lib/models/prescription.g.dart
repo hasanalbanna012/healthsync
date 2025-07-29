@@ -20,19 +20,25 @@ class PrescriptionAdapter extends TypeAdapter<Prescription> {
       id: fields[0] as String,
       imagePath: fields[1] as String,
       dateAdded: fields[2] as DateTime,
+      notes: fields[3] as String?,
+      doctorName: fields[4] as String?,
     );
   }
 
   @override
   void write(BinaryWriter writer, Prescription obj) {
     writer
-      ..writeByte(3)
+      ..writeByte(5)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
       ..write(obj.imagePath)
       ..writeByte(2)
-      ..write(obj.dateAdded);
+      ..write(obj.dateAdded)
+      ..writeByte(3)
+      ..write(obj.notes)
+      ..writeByte(4)
+      ..write(obj.doctorName);
   }
 
   @override

@@ -20,19 +20,28 @@ class TestReportAdapter extends TypeAdapter<TestReport> {
       id: fields[0] as String,
       imagePath: fields[1] as String,
       dateAdded: fields[2] as DateTime,
+      testType: fields[3] as String?,
+      hospitalName: fields[4] as String?,
+      notes: fields[5] as String?,
     );
   }
 
   @override
   void write(BinaryWriter writer, TestReport obj) {
     writer
-      ..writeByte(3)
+      ..writeByte(6)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
       ..write(obj.imagePath)
       ..writeByte(2)
-      ..write(obj.dateAdded);
+      ..write(obj.dateAdded)
+      ..writeByte(3)
+      ..write(obj.testType)
+      ..writeByte(4)
+      ..write(obj.hospitalName)
+      ..writeByte(5)
+      ..write(obj.notes);
   }
 
   @override
