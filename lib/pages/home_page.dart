@@ -6,8 +6,10 @@ import '../models/prescription.dart';
 import '../models/test_report.dart';
 import '../widgets/bottom_nav_bar.dart';
 import '../widgets/image_viewer.dart';
+import '../widgets/app_drawer.dart';
 import '../constants/app_constants.dart';
 import 'alarm_page.dart';
+import 'health_index_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -53,12 +55,14 @@ class _HomePageState extends State<HomePage> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(
-                  isTestReport ? AppConstants.testReportAddedMessage : AppConstants.prescriptionAddedMessage),
+              content: Text(isTestReport
+                  ? AppConstants.testReportAddedMessage
+                  : AppConstants.prescriptionAddedMessage),
               backgroundColor: AppConstants.successColor,
               behavior: SnackBarBehavior.floating,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(AppConstants.borderRadiusSmall),
+                borderRadius:
+                    BorderRadius.circular(AppConstants.borderRadiusSmall),
               ),
             ),
           );
@@ -68,11 +72,13 @@ class _HomePageState extends State<HomePage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('${AppConstants.imagePickErrorMessage}: ${e.toString()}'),
+            content:
+                Text('${AppConstants.imagePickErrorMessage}: ${e.toString()}'),
             backgroundColor: AppConstants.errorColor,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(AppConstants.borderRadiusSmall),
+              borderRadius:
+                  BorderRadius.circular(AppConstants.borderRadiusSmall),
             ),
           ),
         );
@@ -98,9 +104,9 @@ class _HomePageState extends State<HomePage> {
             Text(
               'Add ${isTestReport ? 'Test Report' : 'Prescription'}',
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                color: AppConstants.textPrimaryColor,
-                fontWeight: FontWeight.bold,
-              ),
+                    color: AppConstants.textPrimaryColor,
+                    fontWeight: FontWeight.bold,
+                  ),
             ),
             const SizedBox(height: AppConstants.spacingMedium),
             ListTile(
@@ -108,9 +114,11 @@ class _HomePageState extends State<HomePage> {
                 padding: const EdgeInsets.all(AppConstants.spacingSmall),
                 decoration: BoxDecoration(
                   color: AppConstants.primaryColor.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(AppConstants.borderRadiusSmall),
+                  borderRadius:
+                      BorderRadius.circular(AppConstants.borderRadiusSmall),
                 ),
-                child: const Icon(Icons.camera_alt, color: AppConstants.primaryColor),
+                child: const Icon(Icons.camera_alt,
+                    color: AppConstants.primaryColor),
               ),
               title: const Text('Take Photo'),
               subtitle: const Text('Capture using camera'),
@@ -125,9 +133,11 @@ class _HomePageState extends State<HomePage> {
                 padding: const EdgeInsets.all(AppConstants.spacingSmall),
                 decoration: BoxDecoration(
                   color: AppConstants.accentColor.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(AppConstants.borderRadiusSmall),
+                  borderRadius:
+                      BorderRadius.circular(AppConstants.borderRadiusSmall),
                 ),
-                child: const Icon(Icons.photo_library, color: AppConstants.accentColor),
+                child: const Icon(Icons.photo_library,
+                    color: AppConstants.accentColor),
               ),
               title: const Text('Choose from Gallery'),
               subtitle: const Text('Select existing photo'),
@@ -178,11 +188,12 @@ class _HomePageState extends State<HomePage> {
               padding: const EdgeInsets.all(AppConstants.spacingMedium),
               decoration: BoxDecoration(
                 color: AppConstants.primaryColor.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(AppConstants.borderRadiusMedium),
+                borderRadius:
+                    BorderRadius.circular(AppConstants.borderRadiusMedium),
               ),
               child: Icon(
-                icon, 
-                size: 32, 
+                icon,
+                size: 32,
                 color: AppConstants.primaryColor,
               ),
             ),
@@ -190,7 +201,7 @@ class _HomePageState extends State<HomePage> {
             Text(
               title,
               style: const TextStyle(
-                fontSize: 16, 
+                fontSize: 16,
                 fontWeight: FontWeight.w600,
                 color: AppConstants.textPrimaryColor,
               ),
@@ -216,7 +227,9 @@ class _HomePageState extends State<HomePage> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(
-                    enableTextDetection ? Icons.medical_information : Icons.description,
+                    enableTextDetection
+                        ? Icons.medical_information
+                        : Icons.description,
                     size: 64,
                     color: AppConstants.textDisabledColor,
                   ),
@@ -224,15 +237,15 @@ class _HomePageState extends State<HomePage> {
                   Text(
                     'No ${title.toLowerCase()} yet',
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      color: AppConstants.textSecondaryColor,
-                    ),
+                          color: AppConstants.textSecondaryColor,
+                        ),
                   ),
                   const SizedBox(height: AppConstants.spacingSmall),
                   Text(
                     'Tap the + button to add your first ${title.toLowerCase().substring(0, title.length - 1)}',
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: AppConstants.textDisabledColor,
-                    ),
+                          color: AppConstants.textDisabledColor,
+                        ),
                     textAlign: TextAlign.center,
                   ),
                 ],
@@ -267,10 +280,12 @@ class _HomePageState extends State<HomePage> {
                   child: Container(
                     decoration: BoxDecoration(
                       color: AppConstants.surfaceColor,
-                      borderRadius: BorderRadius.circular(AppConstants.borderRadiusMedium),
+                      borderRadius: BorderRadius.circular(
+                          AppConstants.borderRadiusMedium),
                       boxShadow: [
                         BoxShadow(
-                          color: AppConstants.primaryColor.withValues(alpha: 0.1),
+                          color:
+                              AppConstants.primaryColor.withValues(alpha: 0.1),
                           spreadRadius: 1,
                           blurRadius: 4,
                           offset: const Offset(0, 2),
@@ -283,7 +298,8 @@ class _HomePageState extends State<HomePage> {
                         Expanded(
                           child: ClipRRect(
                             borderRadius: const BorderRadius.vertical(
-                              top: Radius.circular(AppConstants.borderRadiusMedium),
+                              top: Radius.circular(
+                                  AppConstants.borderRadiusMedium),
                             ),
                             child: Image.file(
                               File(item!.imagePath),
@@ -294,18 +310,21 @@ class _HomePageState extends State<HomePage> {
                                   color: AppConstants.cardColor,
                                   child: const Center(
                                     child: Column(
-                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
                                       children: [
                                         Icon(
                                           Icons.broken_image,
                                           size: 40,
                                           color: AppConstants.textDisabledColor,
                                         ),
-                                        SizedBox(height: AppConstants.spacingSmall),
+                                        SizedBox(
+                                            height: AppConstants.spacingSmall),
                                         Text(
                                           'Image not found',
                                           style: TextStyle(
-                                            color: AppConstants.textDisabledColor,
+                                            color:
+                                                AppConstants.textDisabledColor,
                                             fontSize: 12,
                                           ),
                                         ),
@@ -318,7 +337,8 @@ class _HomePageState extends State<HomePage> {
                           ),
                         ),
                         Padding(
-                          padding: const EdgeInsets.all(AppConstants.spacingSmall),
+                          padding:
+                              const EdgeInsets.all(AppConstants.spacingSmall),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -361,7 +381,7 @@ class _HomePageState extends State<HomePage> {
   String _formatDate(DateTime date) {
     final now = DateTime.now();
     final difference = now.difference(date);
-    
+
     if (difference.inDays == 0) {
       return 'Today';
     } else if (difference.inDays == 1) {
@@ -377,9 +397,16 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppConstants.backgroundColor,
+      drawer: const AppDrawer(),
       appBar: AppBar(
         title: const Text('HealthSync'),
         elevation: 0,
+        leading: Builder(
+          builder: (context) => IconButton(
+            icon: const Icon(Icons.menu),
+            onPressed: () => Scaffold.of(context).openDrawer(),
+          ),
+        ),
         flexibleSpace: Container(
           decoration: const BoxDecoration(
             gradient: AppConstants.primaryGradient,
@@ -438,7 +465,14 @@ class _HomePageState extends State<HomePage> {
                 ),
               );
             }),
-            _buildHomeSection('Health Index', Icons.health_and_safety, () {}),
+            _buildHomeSection('Health Index', Icons.health_and_safety, () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const HealthIndexPage(),
+                ),
+              );
+            }),
           ],
         ),
       ),

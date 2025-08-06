@@ -4,6 +4,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'models/prescription.dart';
 import 'models/test_report.dart';
 import 'models/alarm.dart';
+import 'models/bmi_record.dart';
 import 'pages/home_page.dart';
 import 'pages/alarm_ring_screen.dart';
 import 'theme/app_theme.dart';
@@ -22,11 +23,13 @@ void main() async {
   Hive.registerAdapter(TestReportAdapter());
   Hive.registerAdapter(AlarmAdapter());
   Hive.registerAdapter(AlarmTypeAdapter());
+  Hive.registerAdapter(BMIRecordAdapter());
 
   // Open the boxes
   await Hive.openBox<Prescription>('prescriptions');
   await Hive.openBox<TestReport>('test_reports');
   await Hive.openBox<Alarm>('alarms');
+  await Hive.openBox<BMIRecord>('bmi_records');
 
   // Initialize alarm service
   await AlarmService().initialize();
