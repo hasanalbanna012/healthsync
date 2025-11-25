@@ -63,11 +63,15 @@ class _AddAlarmPageState extends State<AddAlarmPage> {
   }
 
   Future<void> _selectDateTime() async {
+    final now = DateTime.now();
+    // Ensure initialDate is not before firstDate
+    final initialDate = _selectedDateTime.isBefore(now) ? now : _selectedDateTime;
+
     final date = await showDatePicker(
       context: context,
-      initialDate: _selectedDateTime,
-      firstDate: DateTime.now(),
-      lastDate: DateTime.now().add(const Duration(days: 365)),
+      initialDate: initialDate,
+      firstDate: now,
+      lastDate: now.add(const Duration(days: 365)),
     );
 
     if (date != null && mounted) {

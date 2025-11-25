@@ -25,16 +25,27 @@ void main() async {
   Hive.registerAdapter(AlarmTypeAdapter());
   Hive.registerAdapter(BMIRecordAdapter());
 
-  // Open the boxes
-  await Hive.openBox<Prescription>('prescriptions');
-  await Hive.openBox<TestReport>('test_reports');
-  await Hive.openBox<Alarm>('alarms');
-  await Hive.openBox<BMIRecord>('bmi_records');
+  // Open the boxes safely
+  await _openBoxSafely<Prescription>('prescriptions');
+  await _openBoxSafely<TestReport>('test_reports');
+  await _openBoxSafely<Alarm>('alarms');
+  await _openBoxSafely<BMIRecord>('bmi_records');
 
   // Initialize alarm service
   await AlarmService().initialize();
 
   runApp(const MyApp());
+}
+
+Future<void> _openBoxSafely<T>(String boxName) async {
+  try {
+    await Hive.openBox<T>(boxName);
+  } catch (e) {
+    debugPrint('Error opening box $boxName: $e');
+    // If the box is corrupted or has schema mismatch, delete it and recreate
+    await Hive.deleteBoxFromDisk(boxName);
+    await Hive.openBox<T>(boxName);
+  }
 }
 
 class MyApp extends StatefulWidget {
