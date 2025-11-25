@@ -65,7 +65,8 @@ class _AddAlarmPageState extends State<AddAlarmPage> {
   Future<void> _selectDateTime() async {
     final now = DateTime.now();
     // Ensure initialDate is not before firstDate
-    final initialDate = _selectedDateTime.isBefore(now) ? now : _selectedDateTime;
+    final initialDate =
+        _selectedDateTime.isBefore(now) ? now : _selectedDateTime;
 
     final date = await showDatePicker(
       context: context,
