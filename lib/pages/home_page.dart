@@ -10,6 +10,7 @@ import '../widgets/app_drawer.dart';
 import '../constants/app_constants.dart';
 import 'alarm_page.dart';
 import 'health_index_page.dart';
+import 'nearby_hospital_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -441,6 +442,7 @@ class _HomePageState extends State<HomePage> {
                         box,
                         'Test Reports',
                         () => _showAddDialog(isTestReport: true),
+                        enableTextDetection: true,
                       );
                     },
                   ),
@@ -497,11 +499,10 @@ class _HomePageState extends State<HomePage> {
               );
               break;
             case 2:
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text(AppConstants.hospitalComingSoon),
-                  backgroundColor: AppConstants.infoColor,
-                  behavior: SnackBarBehavior.floating,
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const NearbyHospitalPage(),
                 ),
               );
               break;

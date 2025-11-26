@@ -10,15 +10,17 @@ class TextDetectorService {
       final inputImage = InputImage.fromFile(File(imagePath));
       final recognizedText = await _textRecognizer.processImage(inputImage);
 
-      List<String> textBlocks = [];
-      for (TextBlock block in recognizedText.blocks) {
-        final text = block.text.trim();
-        if (text.isNotEmpty) {
-          textBlocks.add(text);
+      final List<String> textLines = [];
+      for (final TextBlock block in recognizedText.blocks) {
+        for (final TextLine line in block.lines) {
+          final text = line.text.trim();
+          if (text.isNotEmpty) {
+            textLines.add(text);
+          }
         }
       }
 
-      return textBlocks;
+      return textLines;
     } catch (e) {
       throw Exception('Failed to detect text: ${e.toString()}');
     }

@@ -49,6 +49,10 @@
 		<string>Need camera access to take prescription photos</string>
 		<key>NSPhotoLibraryUsageDescription</key>
 		<string>Need photo library access to select prescription images</string>
+		<key>NSLocationWhenInUseUsageDescription</key>
+		<string>Need location access to show nearby hospitals on the map</string>
+		<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+		<string>Need background location access to keep showing hospital recommendations</string>
 		<key>UIStatusBarHidden</key>
 		<false/>
 	</dict>

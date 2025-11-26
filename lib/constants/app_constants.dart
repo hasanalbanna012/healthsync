@@ -84,6 +84,9 @@ class AppConstants {
   static const String hospitalComingSoon =
       'Nearby Hospitals feature coming soon!';
   static const String profileComingSoon = 'Profile feature coming soon!';
+
+  // API Keys (consider securing these for production)
+  static const String googleMapsApiKey = 'AIzaSyBTVCjXm4JLZeVSmdwkgKqzwk86uVjcQEI';
 }
 
 class AppStrings {
