@@ -115,7 +115,8 @@ class _NearbyHospitalPageState extends State<NearbyHospitalPage> {
             _currentPosition!.longitude,
           ),
           infoWindow: const InfoWindow(title: 'You are here'),
-          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure),
+          icon:
+              BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure),
         ),
       );
 
@@ -131,12 +132,12 @@ class _NearbyHospitalPageState extends State<NearbyHospitalPage> {
       _isFetchingHospitals = true;
     });
 
-    final url = Uri.parse(
-        'https://maps.googleapis.com/maps/api/place/nearbysearch/json'
-        '?location=${position.latitude},${position.longitude}'
-        '&radius=4000'
-        '&type=hospital'
-        '&key=${AppConstants.googleMapsApiKey}');
+    final url =
+        Uri.parse('https://maps.googleapis.com/maps/api/place/nearbysearch/json'
+            '?location=${position.latitude},${position.longitude}'
+            '&radius=4000'
+            '&type=hospital'
+            '&key=${AppConstants.googleMapsApiKey}');
 
     try {
       final response = await http.get(url);
@@ -163,7 +164,8 @@ class _NearbyHospitalPageState extends State<NearbyHospitalPage> {
               position: LatLng(lat, lng),
               infoWindow: InfoWindow(
                 title: name,
-                snippet: snippetBuffer.isEmpty ? null : snippetBuffer.toString(),
+                snippet:
+                    snippetBuffer.isEmpty ? null : snippetBuffer.toString(),
               ),
             );
           }).toSet();
@@ -251,7 +253,8 @@ class _NearbyHospitalPageState extends State<NearbyHospitalPage> {
                     if (_pendingCameraTarget != null) {
                       controller.animateCamera(
                         CameraUpdate.newCameraPosition(
-                          CameraPosition(target: _pendingCameraTarget!, zoom: 15),
+                          CameraPosition(
+                              target: _pendingCameraTarget!, zoom: 15),
                         ),
                       );
                       _pendingCameraTarget = null;
