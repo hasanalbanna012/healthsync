@@ -1,16 +1,20 @@
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'models/prescription.dart';
-import 'models/test_report.dart';
+
 import 'models/alarm.dart';
 import 'models/bmi_record.dart';
-import 'pages/home_page.dart';
+import 'models/prescription.dart';
+import 'models/test_report.dart';
 import 'pages/alarm_ring_screen.dart';
-import 'theme/app_theme.dart';
-import 'services/navigation_service.dart';
-import 'services/alarm_service.dart';
+import 'pages/auth/login_page.dart';
+import 'pages/home_page.dart';
 import 'repositories/alarm_repository.dart';
+import 'services/alarm_service.dart';
+import 'services/navigation_service.dart';
+import 'theme/app_theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -30,6 +34,9 @@ void main() async {
   await _openBoxSafely<TestReport>('test_reports');
   await _openBoxSafely<Alarm>('alarms');
   await _openBoxSafely<BMIRecord>('bmi_records');
+
+  // Initialize Firebase
+  await Firebase.initializeApp();
 
   // Initialize alarm service
   await AlarmService().initialize();
@@ -103,9 +110,49 @@ class _MyAppState extends State<MyApp> {
     return MaterialApp(
       title: 'HealthSync',
       theme: AppTheme.lightTheme,
-      home: const HomePage(),
+      home: const AuthGate(),
       navigatorKey: NavigationService.navigatorKey,
       debugShowCheckedModeBanner: false,
+    );
+  }
+}
+
+class AuthGate extends StatelessWidget {
+  const AuthGate({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<User?>(
+      stream: FirebaseAuth.instance.authStateChanges(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Scaffold(
+            body: Center(
+              child: CircularProgressIndicator(),
+            ),
+          );
+        }
+
+        if (snapshot.hasError) {
+          return Scaffold(
+            body: Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Text(
+                  'Something went wrong. Please restart the app.\n\n${snapshot.error}',
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ),
+          );
+        }
+
+        if (snapshot.hasData) {
+          return const HomePage();
+        }
+
+        return const LoginPage();
+      },
     );
   }
 }

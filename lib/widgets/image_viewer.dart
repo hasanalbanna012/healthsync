@@ -1,7 +1,9 @@
 import 'dart:io';
+
 import 'package:flutter/material.dart';
-import '../services/text_detector.dart';
+
 import '../constants/app_constants.dart';
+import '../services/text_detector.dart';
 
 class ImageViewer extends StatefulWidget {
   final String imagePath;
@@ -39,96 +41,14 @@ class _ImageViewerState extends State<ImageViewer> {
     try {
       final detectedTexts = await _textDetector.detectText(widget.imagePath);
       if (!mounted) return;
-
-      await showModalBottomSheet(
-        context: context,
-        backgroundColor: AppConstants.surfaceColor,
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(
-            top: Radius.circular(AppConstants.borderRadiusLarge),
-          ),
-        ),
-        builder: (context) => Container(
-          padding: const EdgeInsets.all(AppConstants.spacingLarge),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  const Icon(
-                    Icons.text_fields,
-                    color: AppConstants.primaryColor,
-                  ),
-                  const SizedBox(width: AppConstants.spacingSmall),
-                  Text(
-                    AppStrings.detectedText,
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      color: AppConstants.textPrimaryColor,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: AppConstants.spacingMedium),
-              if (detectedTexts.isEmpty)
-                const Center(
-                  child: Column(
-                    children: [
-                      Icon(
-                        Icons.text_snippet_outlined,
-                        size: 48,
-                        color: AppConstants.textDisabledColor,
-                      ),
-                      SizedBox(height: AppConstants.spacingSmall),
-                      Text(
-                        AppConstants.noTextDetectedMessage,
-                        style: TextStyle(color: AppConstants.textSecondaryColor),
-                      ),
-                    ],
-                  ),
-                )
-              else
-                Flexible(
-                  child: ListView.separated(
-                    shrinkWrap: true,
-                    itemCount: detectedTexts.length,
-                    separatorBuilder: (context, index) => const Divider(
-                      color: AppConstants.dividerColor,
-                    ),
-                    itemBuilder: (context, index) => Container(
-                      padding: const EdgeInsets.all(AppConstants.spacingSmall),
-                      decoration: BoxDecoration(
-                        color: AppConstants.cardColor,
-                        borderRadius: BorderRadius.circular(AppConstants.borderRadiusSmall),
-                      ),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              detectedTexts[index],
-                              style: const TextStyle(
-                                color: AppConstants.textPrimaryColor,
-                              ),
-                            ),
-                          ),
-                          IconButton(
-                            icon: const Icon(
-                              Icons.search,
-                              color: AppConstants.accentColor,
-                            ),
-                            onPressed: () {
-                              _textDetector.searchTextOnGoogle(detectedTexts[index]);
-                            },
-                            tooltip: 'Search on Google',
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-            ],
-          ),
+      await _showDetectedTextSheet(detectedTexts);
+    } catch (e) {
+      if (!mounted) return;
+      final message = e.toString().replaceFirst('Exception: ', '');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor: AppConstants.errorColor,
         ),
       );
     } finally {
@@ -138,6 +58,120 @@ class _ImageViewerState extends State<ImageViewer> {
         });
       }
     }
+  }
+
+  Future<void> _showDetectedTextSheet(List<String> detectedTexts) async {
+    if (!mounted) return;
+
+    await showModalBottomSheet(
+      context: context,
+      backgroundColor: AppConstants.surfaceColor,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(AppConstants.borderRadiusLarge),
+        ),
+      ),
+      builder: (_) {
+        return FractionallySizedBox(
+          heightFactor: 0.85,
+          child: SafeArea(
+            child: Padding(
+              padding: EdgeInsets.only(
+                left: AppConstants.spacingLarge,
+                right: AppConstants.spacingLarge,
+                top: AppConstants.spacingLarge,
+                bottom: MediaQuery.of(context).viewInsets.bottom +
+                    AppConstants.spacingLarge,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.text_fields,
+                        color: AppConstants.primaryColor,
+                      ),
+                      const SizedBox(width: AppConstants.spacingSmall),
+                      Text(
+                        AppStrings.detectedText,
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                              color: AppConstants.textPrimaryColor,
+                              fontWeight: FontWeight.bold,
+                            ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: AppConstants.spacingMedium),
+                  Expanded(
+                    child: detectedTexts.isEmpty
+                        ? const Center(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.text_snippet_outlined,
+                                  size: 48,
+                                  color: AppConstants.textDisabledColor,
+                                ),
+                                SizedBox(height: AppConstants.spacingSmall),
+                                Text(
+                                  AppConstants.noTextDetectedMessage,
+                                  style: TextStyle(
+                                    color: AppConstants.textSecondaryColor,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )
+                        : ListView.separated(
+                            itemCount: detectedTexts.length,
+                            separatorBuilder: (_, __) => const Divider(
+                              color: AppConstants.dividerColor,
+                            ),
+                            itemBuilder: (context, index) => Container(
+                              padding: const EdgeInsets.all(
+                                  AppConstants.spacingSmall),
+                              decoration: BoxDecoration(
+                                color: AppConstants.cardColor,
+                                borderRadius: BorderRadius.circular(
+                                  AppConstants.borderRadiusSmall,
+                                ),
+                              ),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      detectedTexts[index],
+                                      style: const TextStyle(
+                                        color: AppConstants.textPrimaryColor,
+                                      ),
+                                    ),
+                                  ),
+                                  IconButton(
+                                    icon: const Icon(
+                                      Icons.search,
+                                      color: AppConstants.accentColor,
+                                    ),
+                                    onPressed: () {
+                                      _textDetector.searchTextOnGoogle(
+                                          detectedTexts[index]);
+                                    },
+                                    tooltip: 'Search on Google',
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
   }
 
   @override
@@ -158,7 +192,8 @@ class _ImageViewerState extends State<ImageViewer> {
               margin: const EdgeInsets.only(right: AppConstants.spacingSmall),
               decoration: BoxDecoration(
                 color: Colors.white.withValues(alpha: 0.2),
-                borderRadius: BorderRadius.circular(AppConstants.borderRadiusSmall),
+                borderRadius:
+                    BorderRadius.circular(AppConstants.borderRadiusSmall),
               ),
               child: IconButton(
                 icon: const Icon(Icons.text_fields, color: Colors.white),
@@ -179,7 +214,8 @@ class _ImageViewerState extends State<ImageViewer> {
               child: Center(
                 child: Container(
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(AppConstants.borderRadiusSmall),
+                    borderRadius:
+                        BorderRadius.circular(AppConstants.borderRadiusSmall),
                     boxShadow: [
                       BoxShadow(
                         color: AppConstants.primaryColor.withValues(alpha: 0.2),
@@ -190,7 +226,8 @@ class _ImageViewerState extends State<ImageViewer> {
                     ],
                   ),
                   child: ClipRRect(
-                    borderRadius: BorderRadius.circular(AppConstants.borderRadiusSmall),
+                    borderRadius:
+                        BorderRadius.circular(AppConstants.borderRadiusSmall),
                     child: Image.file(
                       File(widget.imagePath),
                       fit: BoxFit.contain,

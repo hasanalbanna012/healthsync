@@ -1,12 +1,17 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import '../pages/settings_page.dart';
-import '../pages/feedback_page.dart';
-import '../pages/privacy_policy_page.dart';
-import '../pages/health_index_page.dart';
 import 'package:url_launcher/url_launcher.dart';
+
+import '../pages/feedback_page.dart';
+import '../pages/health_index_page.dart';
+import '../pages/privacy_policy_page.dart';
+import '../pages/settings_page.dart';
+import '../services/auth_service.dart';
 
 class AppDrawer extends StatelessWidget {
   const AppDrawer({super.key});
+
+  static final AuthService _authService = AuthService();
 
   Future<void> _launchUrl(String url) async {
     final Uri uri = Uri.parse(url);
@@ -77,27 +82,36 @@ class AppDrawer extends StatelessWidget {
   }
 
   void _showLogoutDialog(BuildContext context) {
+    final messenger = ScaffoldMessenger.of(context);
     showDialog(
       context: context,
-      builder: (BuildContext context) {
+      builder: (dialogContext) {
         return AlertDialog(
           title: const Text('Logout'),
           content: const Text('Are you sure you want to logout?'),
           actions: [
             TextButton(
-              onPressed: () => Navigator.of(context).pop(),
+              onPressed: () => Navigator.of(dialogContext).pop(),
               child: const Text('Cancel'),
             ),
             TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                // Implement logout functionality here
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content:
-                        Text('Logout functionality would be implemented here'),
-                  ),
-                );
+              onPressed: () async {
+                Navigator.of(dialogContext).pop();
+                try {
+                  await _authService.signOut();
+                  messenger.showSnackBar(
+                    const SnackBar(content: Text('Signed out successfully.')),
+                  );
+                } catch (e) {
+                  messenger.showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        e.toString().replaceFirst('Exception: ', ''),
+                      ),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
               },
               child: const Text('Logout'),
             ),
@@ -109,6 +123,12 @@ class AppDrawer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final User? user = FirebaseAuth.instance.currentUser;
+    final displayName = (user?.displayName?.trim().isNotEmpty ?? false)
+        ? user!.displayName!
+        : 'HealthSync User';
+    final email = user?.email ?? 'No email linked';
+
     return Drawer(
       child: Column(
         children: [
@@ -118,22 +138,22 @@ class AppDrawer extends StatelessWidget {
               gradient: LinearGradient(
                 colors: [
                   Theme.of(context).primaryColor,
-                  Theme.of(context).primaryColor.withOpacity(0.8),
+                  Theme.of(context).primaryColor.withValues(alpha: 0.8),
                 ],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
             ),
-            accountName: const Text(
-              'John Doe',
-              style: TextStyle(
+            accountName: Text(
+              displayName,
+              style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
               ),
             ),
-            accountEmail: const Text(
-              'john.doe@example.com',
-              style: TextStyle(fontSize: 14),
+            accountEmail: Text(
+              email,
+              style: const TextStyle(fontSize: 14),
             ),
             currentAccountPicture: CircleAvatar(
               radius: 40,

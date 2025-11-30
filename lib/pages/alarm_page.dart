@@ -245,7 +245,7 @@ class _AlarmPageState extends State<AlarmPage> {
             vertical: 2,
           ),
           decoration: BoxDecoration(
-            color: AppConstants.primaryColor.withOpacity(0.1),
+            color: AppConstants.primaryColor.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Text(
@@ -278,8 +278,8 @@ class _AlarmPageState extends State<AlarmPage> {
           height: 50,
           decoration: BoxDecoration(
             color: alarm.isActive
-                ? AppConstants.primaryColor.withOpacity(0.1)
-                : AppConstants.textDisabledColor.withOpacity(0.1),
+              ? AppConstants.primaryColor.withValues(alpha: 0.1)
+              : AppConstants.textDisabledColor.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(25),
           ),
           child: Center(

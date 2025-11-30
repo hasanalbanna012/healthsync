@@ -188,10 +188,12 @@ class _AlarmRingScreenState extends State<AlarmRingScreen>
                               width: 120,
                               height: 120,
                               decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.2),
+                                color:
+                                  Colors.white.withValues(alpha: 0.2),
                                 shape: BoxShape.circle,
                                 border: Border.all(
-                                  color: Colors.white.withOpacity(0.5),
+                                  color:
+                                      Colors.white.withValues(alpha: 0.5),
                                   width: 2,
                                 ),
                               ),
@@ -214,11 +216,11 @@ class _AlarmRingScreenState extends State<AlarmRingScreen>
                 Container(
                   padding: const EdgeInsets.all(AppConstants.spacingLarge),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.1),
+                    color: Colors.white.withValues(alpha: 0.1),
                     borderRadius:
                         BorderRadius.circular(AppConstants.borderRadiusLarge),
                     border: Border.all(
-                      color: Colors.white.withOpacity(0.3),
+                      color: Colors.white.withValues(alpha: 0.3),
                       width: 1,
                     ),
                   ),
@@ -275,7 +277,7 @@ class _AlarmRingScreenState extends State<AlarmRingScreen>
                         width: 80,
                         height: 80,
                         decoration: BoxDecoration(
-                          color: Colors.orange.withOpacity(0.2),
+                          color: Colors.orange.withValues(alpha: 0.2),
                           shape: BoxShape.circle,
                           border: Border.all(
                             color: Colors.orange,
@@ -310,7 +312,7 @@ class _AlarmRingScreenState extends State<AlarmRingScreen>
                         width: 100,
                         height: 100,
                         decoration: BoxDecoration(
-                          color: Colors.red.withOpacity(0.2),
+                          color: Colors.red.withValues(alpha: 0.2),
                           shape: BoxShape.circle,
                           border: Border.all(
                             color: Colors.red,

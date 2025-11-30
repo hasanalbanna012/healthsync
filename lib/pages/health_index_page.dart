@@ -132,7 +132,8 @@ class _HealthIndexPageState extends State<HealthIndexPage> {
                 gradient: LinearGradient(
                   colors: [
                     AppConstants.primaryColor,
-                    AppConstants.primaryColor.withOpacity(0.8),
+                    AppConstants.primaryColor
+                        .withValues(alpha: 0.8),
                   ],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
@@ -301,7 +302,8 @@ class _HealthIndexPageState extends State<HealthIndexPage> {
                       Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: _getBMIColor(_bmiCategory!).withOpacity(0.1),
+                          color: _getBMIColor(_bmiCategory!)
+                              .withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(8),
                           border: Border.all(
                             color: _getBMIColor(_bmiCategory!),
@@ -514,15 +516,15 @@ class _HealthIndexPageState extends State<HealthIndexPage> {
                         trailing: IconButton(
                           icon: const Icon(Icons.delete, color: Colors.red),
                           onPressed: () async {
+                            final messenger = ScaffoldMessenger.of(context);
                             await record.delete();
-                            if (mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('Record deleted'),
-                                  backgroundColor: Colors.red,
-                                ),
-                              );
-                            }
+                            if (!context.mounted) return;
+                            messenger.showSnackBar(
+                              const SnackBar(
+                                content: Text('Record deleted'),
+                                backgroundColor: Colors.red,
+                              ),
+                            );
                           },
                         ),
                       ),
