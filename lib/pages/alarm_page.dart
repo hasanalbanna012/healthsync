@@ -278,8 +278,8 @@ class _AlarmPageState extends State<AlarmPage> {
           height: 50,
           decoration: BoxDecoration(
             color: alarm.isActive
-              ? AppConstants.primaryColor.withValues(alpha: 0.1)
-              : AppConstants.textDisabledColor.withValues(alpha: 0.1),
+                ? AppConstants.primaryColor.withValues(alpha: 0.1)
+                : AppConstants.textDisabledColor.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(25),
           ),
           child: Center(

@@ -334,7 +334,7 @@ class _AddAlarmPageState extends State<AddAlarmPage> {
                               _selectedDays.sort();
                             });
                           },
-                            selectedColor:
+                          selectedColor:
                               AppConstants.primaryColor.withValues(alpha: 0.2),
                           checkmarkColor: AppConstants.primaryColor,
                         );

@@ -132,8 +132,7 @@ class _HealthIndexPageState extends State<HealthIndexPage> {
                 gradient: LinearGradient(
                   colors: [
                     AppConstants.primaryColor,
-                    AppConstants.primaryColor
-                        .withValues(alpha: 0.8),
+                    AppConstants.primaryColor.withValues(alpha: 0.8),
                   ],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
