@@ -9,6 +9,7 @@ import '../widgets/image_viewer.dart';
 import '../widgets/app_drawer.dart';
 import '../constants/app_constants.dart';
 import 'alarm_page.dart';
+import 'doctor_list_page.dart';
 import 'health_index_page.dart';
 import 'nearby_hospital_page.dart';
 
@@ -430,7 +431,14 @@ class _HomePageState extends State<HomePage> {
                 ),
               );
             }),
-            _buildHomeSection('Doctors', Icons.person_2, () {}),
+            _buildHomeSection('Doctors', Icons.person_2, () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const DoctorListPage(),
+                ),
+              );
+            }),
             _buildHomeSection('Test Reports', Icons.description, () {
               Navigator.push(
                 context,
