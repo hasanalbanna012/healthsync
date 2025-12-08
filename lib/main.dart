@@ -7,6 +7,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'models/alarm.dart';
 import 'models/bmi_record.dart';
 import 'models/doctor.dart';
+import 'models/medicine.dart';
 import 'models/prescription.dart';
 import 'models/test_report.dart';
 import 'pages/alarm_ring_screen.dart';
@@ -30,6 +31,7 @@ void main() async {
   Hive.registerAdapter(AlarmTypeAdapter());
   Hive.registerAdapter(BMIRecordAdapter());
   Hive.registerAdapter(DoctorAdapter());
+  Hive.registerAdapter(MedicineAdapter());
 
   // Open the boxes safely
   await _openBoxSafely<Prescription>('prescriptions');
@@ -37,6 +39,7 @@ void main() async {
   await _openBoxSafely<Alarm>('alarms');
   await _openBoxSafely<BMIRecord>('bmi_records');
   await _openBoxSafely<Doctor>('saved_doctors');
+  await _openBoxSafely<Medicine>('saved_medicines');
 
   // Initialize Firebase
   await Firebase.initializeApp();

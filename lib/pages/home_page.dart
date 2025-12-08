@@ -11,7 +11,9 @@ import '../constants/app_constants.dart';
 import 'alarm_page.dart';
 import 'doctor_list_page.dart';
 import 'health_index_page.dart';
+import 'medicine_list_page.dart';
 import 'nearby_hospital_page.dart';
+import 'profile_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -422,7 +424,14 @@ class _HomePageState extends State<HomePage> {
           mainAxisSpacing: AppConstants.spacingLarge,
           crossAxisSpacing: AppConstants.spacingLarge,
           children: [
-            _buildHomeSection('Medicine', Icons.medication, () {}),
+            _buildHomeSection('Medicine', Icons.medication, () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const MedicineListPage(),
+                ),
+              );
+            }),
             _buildHomeSection('Alarm', Icons.alarm, () {
               Navigator.push(
                 context,
@@ -515,11 +524,10 @@ class _HomePageState extends State<HomePage> {
               );
               break;
             case 3:
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text(AppConstants.profileComingSoon),
-                  backgroundColor: AppConstants.infoColor,
-                  behavior: SnackBarBehavior.floating,
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const ProfilePage(),
                 ),
               );
               break;

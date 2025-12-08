@@ -4,6 +4,9 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../pages/feedback_page.dart';
 import '../pages/health_index_page.dart';
+import '../pages/my_doctors_page.dart';
+import '../pages/my_medicines_page.dart';
+import '../pages/profile_page.dart';
 import '../pages/privacy_policy_page.dart';
 import '../pages/settings_page.dart';
 import '../services/auth_service.dart';
@@ -191,6 +194,46 @@ class AppDrawer extends StatelessWidget {
                       context,
                       MaterialPageRoute(
                         builder: (context) => const HealthIndexPage(),
+                      ),
+                    );
+                  },
+                ),
+                ListTile(
+                  leading:
+                      const Icon(Icons.person_outline, color: Colors.deepPurple),
+                  title: const Text('My Profile'),
+                  onTap: () {
+                    Navigator.pop(context);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const ProfilePage(),
+                      ),
+                    );
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.medication, color: Colors.teal),
+                  title: const Text('My Medicines'),
+                  onTap: () {
+                    Navigator.pop(context);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const MyMedicinesPage(),
+                      ),
+                    );
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.person_2, color: Colors.indigo),
+                  title: const Text('My Doctors'),
+                  onTap: () {
+                    Navigator.pop(context);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const MyDoctorsPage(),
                       ),
                     );
                   },
