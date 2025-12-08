@@ -60,7 +60,7 @@ class UserProfile {
           ? DateTime.tryParse(data['dateOfBirth'] as String)
           : null,
       phoneNumber: (data['phoneNumber'] as String?) ?? '',
-      healthIssues: (data['healthIssues'] as List<dynamic>? )
+      healthIssues: (data['healthIssues'] as List<dynamic>?)
               ?.map((item) => item.toString())
               .toList() ??
           const [],

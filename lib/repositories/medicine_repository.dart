@@ -18,8 +18,7 @@ class MedicineRepository {
   List<Medicine> getSavedMedicines() =>
       _savedBox.values.toList(growable: false);
 
-  bool isMedicineSaved(String medicineId) =>
-      _savedBox.containsKey(medicineId);
+  bool isMedicineSaved(String medicineId) => _savedBox.containsKey(medicineId);
 
   Future<void> saveMedicine(Medicine medicine) async {
     await _savedBox.put(medicine.id, medicine);
@@ -31,8 +30,8 @@ class MedicineRepository {
 
   Future<List<Medicine>> loadMedicinesFromAsset() async {
     final csvContent = await rootBundle.loadString(_csvAssetPath);
-    final rows = const CsvToListConverter(shouldParseNumbers: false)
-        .convert(csvContent);
+    final rows =
+        const CsvToListConverter(shouldParseNumbers: false).convert(csvContent);
 
     if (rows.isEmpty) {
       return [];

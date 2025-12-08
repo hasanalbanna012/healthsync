@@ -57,14 +57,15 @@ class _ProfilePageState extends State<ProfilePage> {
     try {
       final profile = await _profileService.fetchProfile(user.uid);
       _currentProfile = profile;
-      _nameController.text =
-          profile.fullName.isNotEmpty ? profile.fullName : (user.displayName ?? '');
+      _nameController.text = profile.fullName.isNotEmpty
+          ? profile.fullName
+          : (user.displayName ?? '');
       _phoneController.text = profile.phoneNumber;
       _bloodTypeController.text = profile.bloodType;
       _emergencyContactController.text = profile.emergencyContact;
       _healthIssuesController.text = profile.healthIssues.join('\n');
       _selectedDob = profile.dateOfBirth;
-        _dobController.text = _selectedDob == null
+      _dobController.text = _selectedDob == null
           ? ''
           : '${_selectedDob!.day}/${_selectedDob!.month}/${_selectedDob!.year}';
       _photoUrl = profile.profileImageUrl;
@@ -84,7 +85,8 @@ class _ProfilePageState extends State<ProfilePage> {
 
   Future<void> _pickDate() async {
     final now = DateTime.now();
-    final initialDate = _selectedDob ?? DateTime(now.year - 18, now.month, now.day);
+    final initialDate =
+        _selectedDob ?? DateTime(now.year - 18, now.month, now.day);
     final picked = await showDatePicker(
       context: context,
       initialDate: initialDate,
@@ -186,7 +188,8 @@ class _ProfilePageState extends State<ProfilePage> {
                   )
                 : const Text(
                     'Save',
-                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                        color: Colors.white, fontWeight: FontWeight.bold),
                   ),
           ),
         ],
@@ -261,7 +264,8 @@ class _ProfilePageState extends State<ProfilePage> {
                       maxLines: 5,
                       decoration: const InputDecoration(
                         labelText: 'Health Issues / Notes',
-                        hintText: 'Separate multiple entries with commas or new lines',
+                        hintText:
+                            'Separate multiple entries with commas or new lines',
                         prefixIcon: Icon(Icons.notes_outlined),
                       ),
                     ),

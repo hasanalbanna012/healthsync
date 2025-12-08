@@ -199,8 +199,8 @@ class AppDrawer extends StatelessWidget {
                   },
                 ),
                 ListTile(
-                  leading:
-                      const Icon(Icons.person_outline, color: Colors.deepPurple),
+                  leading: const Icon(Icons.person_outline,
+                      color: Colors.deepPurple),
                   title: const Text('My Profile'),
                   onTap: () {
                     Navigator.pop(context);

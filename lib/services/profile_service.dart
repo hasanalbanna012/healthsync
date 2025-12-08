@@ -10,7 +10,8 @@ class ProfileService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   Future<UserProfile> fetchProfile(String uid) async {
-    final snapshot = await _firestore.collection('user_profiles').doc(uid).get();
+    final snapshot =
+        await _firestore.collection('user_profiles').doc(uid).get();
     if (!snapshot.exists || snapshot.data() == null) {
       return UserProfile.empty(uid);
     }
@@ -23,5 +24,4 @@ class ProfileService {
         .doc(profile.uid)
         .set(profile.toMap(), SetOptions(merge: true));
   }
-
 }
