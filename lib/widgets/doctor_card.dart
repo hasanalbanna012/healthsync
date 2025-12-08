@@ -31,7 +31,8 @@ class DoctorCard extends StatelessWidget {
       await launchUrl(uri);
     } else {
       messenger.showSnackBar(
-        const SnackBar(content: Text('Unable to start the call on this device.')),
+        const SnackBar(
+            content: Text('Unable to start the call on this device.')),
       );
     }
   }
@@ -39,9 +40,9 @@ class DoctorCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final buttonLabel =
-      isSaved ? 'Remove from My Doctors' : 'Save to My Doctors';
+        isSaved ? 'Remove from My Doctors' : 'Save to My Doctors';
     final buttonIcon =
-      isSaved ? Icons.delete_outline : Icons.bookmark_add_outlined;
+        isSaved ? Icons.delete_outline : Icons.bookmark_add_outlined;
 
     return Card(
       margin: const EdgeInsets.symmetric(vertical: AppConstants.spacingSmall),
@@ -89,9 +90,10 @@ class DoctorCard extends StatelessWidget {
                     children: [
                       Text(
                         doctor.name,
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
+                        style:
+                            Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
                       ),
                       const SizedBox(height: 4),
                       Text(

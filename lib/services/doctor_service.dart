@@ -22,8 +22,7 @@ class DoctorService {
   ValueListenable<Box<Doctor>> get savedDoctorsListenable =>
       _repository.savedDoctorsListenable;
 
-  bool isDoctorSaved(String doctorId) =>
-      _repository.isDoctorSaved(doctorId);
+  bool isDoctorSaved(String doctorId) => _repository.isDoctorSaved(doctorId);
 
   Future<void> saveDoctor(Doctor doctor) => _repository.saveDoctor(doctor);
 

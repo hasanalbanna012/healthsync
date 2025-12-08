@@ -48,8 +48,7 @@ class MyDoctorsPage extends StatelessWidget {
                 return DoctorCard(
                   doctor: doctor,
                   isSaved: true,
-                  onToggleSaved: () =>
-                      doctorService.removeDoctor(doctor.id),
+                  onToggleSaved: () => doctorService.removeDoctor(doctor.id),
                 );
               },
             );

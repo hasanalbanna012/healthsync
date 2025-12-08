@@ -45,7 +45,8 @@ class _DoctorListPageState extends State<DoctorListPage> {
     } catch (e) {
       setState(() {
         _isLoading = false;
-        _errorMessage = 'Unable to load doctors at the moment. Please try again later.';
+        _errorMessage =
+            'Unable to load doctors at the moment. Please try again later.';
       });
     }
   }
