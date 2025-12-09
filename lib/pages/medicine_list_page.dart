@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../constants/app_constants.dart';
 import '../models/medicine.dart';
@@ -17,6 +18,7 @@ class MedicineListPage extends StatefulWidget {
 class _MedicineListPageState extends State<MedicineListPage> {
   final MedicineService _medicineService = MedicineService();
   final TextEditingController _searchController = TextEditingController();
+  static final Uri _buyMedicineUri = Uri.parse('https://medeasy.health/');
 
   List<Medicine> _allMedicines = [];
   bool _isLoading = true;
@@ -72,6 +74,19 @@ class _MedicineListPageState extends State<MedicineListPage> {
     }
   }
 
+  Future<void> _openBuyMedicine() async {
+    final success = await launchUrl(
+      _buyMedicineUri,
+      mode: LaunchMode.inAppBrowserView,
+    );
+
+    if (!success && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Unable to open MedEasy right now.')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -105,6 +120,22 @@ class _MedicineListPageState extends State<MedicineListPage> {
                   )
                 : Column(
                     children: [
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton.icon(
+                          onPressed: _openBuyMedicine,
+                          icon: const Icon(Icons.shopping_cart_outlined),
+                          label: const Text('Buy Medicine'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppConstants.primaryColor,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(
+                              vertical: AppConstants.spacingSmall,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: AppConstants.spacingMedium),
                       TextField(
                         controller: _searchController,
                         decoration: InputDecoration(
