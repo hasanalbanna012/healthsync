@@ -121,8 +121,7 @@ class _HomePageState extends State<HomePage> {
                   borderRadius:
                       BorderRadius.circular(AppConstants.borderRadiusSmall),
                 ),
-                child: const Icon(Icons.camera_alt,
-                    color: AppConstants.primaryColor),
+                child: Icon(Icons.camera_alt, color: AppConstants.primaryColor),
               ),
               title: const Text('Take Photo'),
               subtitle: const Text('Capture using camera'),
@@ -140,8 +139,8 @@ class _HomePageState extends State<HomePage> {
                   borderRadius:
                       BorderRadius.circular(AppConstants.borderRadiusSmall),
                 ),
-                child: const Icon(Icons.photo_library,
-                    color: AppConstants.accentColor),
+                child:
+                    Icon(Icons.photo_library, color: AppConstants.accentColor),
               ),
               title: const Text('Choose from Gallery'),
               subtitle: const Text('Select existing photo'),
@@ -163,7 +162,7 @@ class _HomePageState extends State<HomePage> {
       borderRadius: BorderRadius.circular(AppConstants.borderRadiusLarge),
       child: Container(
         decoration: BoxDecoration(
-          gradient: const LinearGradient(
+          gradient: LinearGradient(
             colors: [
               AppConstants.surfaceColor,
               AppConstants.cardColor,
@@ -204,7 +203,7 @@ class _HomePageState extends State<HomePage> {
             const SizedBox(height: AppConstants.spacingMedium),
             Text(
               title,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
                 color: AppConstants.textPrimaryColor,
@@ -312,7 +311,7 @@ class _HomePageState extends State<HomePage> {
                               errorBuilder: (context, error, stackTrace) {
                                 return Container(
                                   color: AppConstants.cardColor,
-                                  child: const Center(
+                                  child: Center(
                                     child: Column(
                                       mainAxisAlignment:
                                           MainAxisAlignment.center,
@@ -322,7 +321,7 @@ class _HomePageState extends State<HomePage> {
                                           size: 40,
                                           color: AppConstants.textDisabledColor,
                                         ),
-                                        SizedBox(
+                                        const SizedBox(
                                             height: AppConstants.spacingSmall),
                                         Text(
                                           'Image not found',
@@ -348,7 +347,7 @@ class _HomePageState extends State<HomePage> {
                             children: [
                               Text(
                                 '${title.substring(0, title.length - 1)} ${index + 1}',
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontWeight: FontWeight.w600,
                                   color: AppConstants.textPrimaryColor,
                                 ),
@@ -358,7 +357,7 @@ class _HomePageState extends State<HomePage> {
                               const SizedBox(height: 2),
                               Text(
                                 'Added ${_formatDate(item.dateAdded)}',
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 12,
                                   color: AppConstants.textSecondaryColor,
                                 ),
@@ -411,11 +410,7 @@ class _HomePageState extends State<HomePage> {
             onPressed: () => Scaffold.of(context).openDrawer(),
           ),
         ),
-        flexibleSpace: Container(
-          decoration: const BoxDecoration(
-            gradient: AppConstants.primaryGradient,
-          ),
-        ),
+        
       ),
       body: Padding(
         padding: const EdgeInsets.all(AppConstants.spacingLarge),
@@ -508,8 +503,8 @@ class _HomePageState extends State<HomePage> {
               break;
             case 1:
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text(AppConstants.notificationsComingSoon),
+                SnackBar(
+                  content: const Text(AppConstants.notificationsComingSoon),
                   backgroundColor: AppConstants.infoColor,
                   behavior: SnackBarBehavior.floating,
                 ),

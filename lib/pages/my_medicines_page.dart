@@ -23,14 +23,14 @@ class MyMedicinesPage extends StatelessWidget {
           valueListenable: medicineService.savedMedicinesListenable,
           builder: (context, savedBox, _) {
             if (savedBox.values.isEmpty) {
-              return const Center(
+              return Center(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(Icons.medication_liquid,
                         size: 64, color: AppConstants.textSecondaryColor),
-                    SizedBox(height: AppConstants.spacingMedium),
-                    Text(
+                    const SizedBox(height: AppConstants.spacingMedium),
+                    const Text(
                       'You have not saved any medicines yet.',
                       textAlign: TextAlign.center,
                     ),

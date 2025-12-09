@@ -1,71 +1,72 @@
 import 'package:flutter/material.dart';
 
+import '../theme/app_palette.dart';
+import 'design_tokens.dart';
+
 class AppConstants {
   // App Info
   static const String appName = 'HealthSync';
   static const String appVersion = '1.0.0';
 
+  // Color palette (change values in AppPalette.defaultPalette)
+  static AppPalette palette = AppPalette.defaultPalette;
+
   // Primary Brand Colors (Healthcare green-inspired palette)
-  static const Color primaryColor = Color(0xFF218D66); // Primary green
-  static const Color primaryLightColor = Color(0xFF4CAF7A); // Light green
-  static const Color primaryDarkColor = Color(0xFF1B6B4F); // Dark green
+  static Color get primaryColor => palette.primary;
+  static Color get primaryLightColor => palette.primaryLight;
+  static Color get primaryDarkColor => palette.primaryDark;
 
   // Secondary Colors
-  static const Color accentColor = Color(0xFF2E7D5A); // Complementary green
-  static const Color accentLightColor = Color(0xFF66BB8A); // Light accent green
-  static const Color accentDarkColor = Color(0xFF1A5A42); // Dark accent green
+  static Color get accentColor => palette.secondary;
+  static Color get accentLightColor => palette.secondaryLight;
+  static Color get accentDarkColor => palette.secondaryDark;
 
   // Status Colors
-  static const Color successColor =
-      Color(0xFF2E7D5A); // Success green (matching theme)
-  static const Color warningColor = Color(0xFFFF9800); // Orange
-  static const Color errorColor = Color(0xFFE53935); // Red
-  static const Color infoColor = Color(0xFF218D66); // Info green (primary)
+  static Color get successColor => palette.success;
+  static Color get warningColor => palette.warning;
+  static Color get errorColor => palette.error;
+  static Color get infoColor => palette.info;
 
   // Neutral Colors
-  static const Color backgroundColor =
-      Color(0xFFF7FBF9); // Very light green-tinted background
-  static const Color surfaceColor = Color(0xFFFFFFFF); // White
-  static const Color cardColor =
-      Color(0xFFFAFDFC); // Very light green-tinted card
-  static const Color dividerColor =
-      Color(0xFFE8F2EE); // Light green-tinted divider
+  static Color get backgroundColor => palette.background;
+  static Color get surfaceColor => palette.surface;
+  static Color get cardColor => palette.card;
+  static Color get dividerColor => palette.divider;
 
   // Text Colors
-  static const Color textPrimaryColor = Color(0xFF1A4A38); // Dark green-gray
-  static const Color textSecondaryColor =
-      Color(0xFF4A6B5D); // Medium green-gray
-  static const Color textDisabledColor = Color(0xFF8FA99A); // Light green-gray
+  static Color get textPrimaryColor => palette.textPrimary;
+  static Color get textSecondaryColor => palette.textSecondary;
+  static Color get textDisabledColor => palette.textDisabled;
 
   // Gradient Colors
-  static const LinearGradient primaryGradient = LinearGradient(
-    colors: [primaryColor, primaryLightColor],
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-  );
+  static LinearGradient get primaryGradient => LinearGradient(
+        colors: [primaryColor, primaryLightColor],
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+      );
 
-  static const LinearGradient accentGradient = LinearGradient(
-    colors: [accentColor, accentLightColor],
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-  );
+  static LinearGradient get accentGradient => LinearGradient(
+        colors: [accentColor, accentLightColor],
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+      );
 
   // Spacing
-  static const double spacingSmall = 8.0;
-  static const double spacingMedium = 16.0;
-  static const double spacingLarge = 24.0;
-  static const double spacingXLarge = 32.0;
+  static const double spacingSmall = DesignTokens.spacingSmall;
+  static const double spacingMedium = DesignTokens.spacingMedium;
+  static const double spacingLarge = DesignTokens.spacingLarge;
+  static const double spacingXLarge = DesignTokens.spacingXLarge;
 
   // Border Radius
-  static const double borderRadiusSmall = 8.0;
-  static const double borderRadiusMedium = 12.0;
-  static const double borderRadiusLarge = 16.0;
-  static const double borderRadiusXLarge = 20.0;
+  static const double borderRadiusSmall = DesignTokens.borderRadiusSmall;
+  static const double borderRadiusMedium = DesignTokens.borderRadiusMedium;
+  static const double borderRadiusLarge = DesignTokens.borderRadiusLarge;
+  static const double borderRadiusXLarge = DesignTokens.borderRadiusXLarge;
 
   // Elevation
-  static const double elevationLow = 2.0;
-  static const double elevationMedium = 4.0;
-  static const double elevationHigh = 8.0;
+  static const double elevationLow = DesignTokens.elevationLow;
+  static const double elevationMedium = DesignTokens.elevationMedium;
+  static const double elevationHigh = DesignTokens.elevationHigh;
 
   // Image Settings
   static const int imageQuality = 80;

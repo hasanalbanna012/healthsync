@@ -23,14 +23,14 @@ class MyDoctorsPage extends StatelessWidget {
           valueListenable: doctorService.savedDoctorsListenable,
           builder: (context, savedBox, _) {
             if (savedBox.values.isEmpty) {
-              return const Center(
+              return Center(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(Icons.person_search,
                         size: 64, color: AppConstants.textSecondaryColor),
-                    SizedBox(height: AppConstants.spacingMedium),
-                    Text(
+                    const SizedBox(height: AppConstants.spacingMedium),
+                    const Text(
                       'You have not saved any doctors yet.',
                       textAlign: TextAlign.center,
                     ),

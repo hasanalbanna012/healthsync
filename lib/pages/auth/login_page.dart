@@ -124,7 +124,7 @@ class _LoginPageState extends State<LoginPage> {
                     ),
               ),
               const SizedBox(height: AppConstants.spacingSmall),
-              const Text(
+              Text(
                 'Sign in to access your prescriptions, reports, and more.',
                 style: TextStyle(color: AppConstants.textSecondaryColor),
               ),
@@ -211,8 +211,7 @@ class _LoginPageState extends State<LoginPage> {
                             ),
                             child: Text(
                               _errorMessage!,
-                              style: const TextStyle(
-                                  color: AppConstants.errorColor),
+                              style: TextStyle(color: AppConstants.errorColor),
                             ),
                           ),
                         SizedBox(
@@ -257,7 +256,7 @@ class _LoginPageState extends State<LoginPage> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text(
+                  Text(
                     'Don\'t have an account? ',
                     style: TextStyle(color: AppConstants.textSecondaryColor),
                   ),

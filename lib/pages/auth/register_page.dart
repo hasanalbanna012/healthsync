@@ -186,8 +186,7 @@ class _RegisterPageState extends State<RegisterPage> {
                         ),
                         child: Text(
                           _errorMessage!,
-                          style:
-                              const TextStyle(color: AppConstants.errorColor),
+                          style: TextStyle(color: AppConstants.errorColor),
                         ),
                       ),
                     SizedBox(

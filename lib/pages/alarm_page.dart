@@ -85,8 +85,8 @@ class _AlarmPageState extends State<AlarmPage> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Alarm deleted'),
+          SnackBar(
+            content: const Text('Alarm deleted'),
             backgroundColor: AppConstants.primaryColor,
           ),
         );
@@ -176,7 +176,7 @@ class _AlarmPageState extends State<AlarmPage> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(
+          Icon(
             Icons.alarm_off,
             size: 80,
             color: AppConstants.textDisabledColor,
@@ -350,11 +350,11 @@ class _AlarmPageState extends State<AlarmPage> {
                 }
               },
               itemBuilder: (context) => [
-                const PopupMenuItem(
+                PopupMenuItem(
                   value: 'edit',
                   child: ListTile(
                     leading: Icon(Icons.edit, color: AppConstants.primaryColor),
-                    title: Text('Edit'),
+                    title: const Text('Edit'),
                     contentPadding: EdgeInsets.zero,
                   ),
                 ),

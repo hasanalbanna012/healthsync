@@ -89,7 +89,7 @@ class _ImageViewerState extends State<ImageViewer> {
                 children: [
                   Row(
                     children: [
-                      const Icon(
+                      Icon(
                         Icons.text_fields,
                         color: AppConstants.primaryColor,
                       ),
@@ -106,7 +106,7 @@ class _ImageViewerState extends State<ImageViewer> {
                   const SizedBox(height: AppConstants.spacingMedium),
                   Expanded(
                     child: detectedTexts.isEmpty
-                        ? const Center(
+                        ? Center(
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
                               children: [
@@ -115,7 +115,7 @@ class _ImageViewerState extends State<ImageViewer> {
                                   size: 48,
                                   color: AppConstants.textDisabledColor,
                                 ),
-                                SizedBox(height: AppConstants.spacingSmall),
+                                const SizedBox(height: AppConstants.spacingSmall),
                                 Text(
                                   AppConstants.noTextDetectedMessage,
                                   style: TextStyle(
@@ -127,7 +127,7 @@ class _ImageViewerState extends State<ImageViewer> {
                           )
                         : ListView.separated(
                             itemCount: detectedTexts.length,
-                            separatorBuilder: (_, __) => const Divider(
+                            separatorBuilder: (_, __) => Divider(
                               color: AppConstants.dividerColor,
                             ),
                             itemBuilder: (context, index) => Container(
@@ -144,13 +144,13 @@ class _ImageViewerState extends State<ImageViewer> {
                                   Expanded(
                                     child: Text(
                                       detectedTexts[index],
-                                      style: const TextStyle(
+                                      style: TextStyle(
                                         color: AppConstants.textPrimaryColor,
                                       ),
                                     ),
                                   ),
                                   IconButton(
-                                    icon: const Icon(
+                                    icon: Icon(
                                       Icons.search,
                                       color: AppConstants.accentColor,
                                     ),
@@ -182,7 +182,7 @@ class _ImageViewerState extends State<ImageViewer> {
         title: Text(widget.title),
         elevation: 0,
         flexibleSpace: Container(
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             gradient: AppConstants.primaryGradient,
           ),
         ),
@@ -236,7 +236,7 @@ class _ImageViewerState extends State<ImageViewer> {
                           width: 200,
                           height: 200,
                           color: AppConstants.cardColor,
-                          child: const Column(
+                          child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Icon(
@@ -244,7 +244,7 @@ class _ImageViewerState extends State<ImageViewer> {
                                 size: 64,
                                 color: AppConstants.textDisabledColor,
                               ),
-                              SizedBox(height: AppConstants.spacingSmall),
+                              const SizedBox(height: AppConstants.spacingSmall),
                               Text(
                                 'Image not found',
                                 style: TextStyle(
@@ -264,14 +264,14 @@ class _ImageViewerState extends State<ImageViewer> {
           if (_isLoading)
             Container(
               color: AppConstants.backgroundColor.withValues(alpha: 0.8),
-              child: const Center(
+              child: Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     CircularProgressIndicator(
                       color: AppConstants.primaryColor,
                     ),
-                    SizedBox(height: AppConstants.spacingMedium),
+                    const SizedBox(height: AppConstants.spacingMedium),
                     Text(
                       'Extracting text...',
                       style: TextStyle(
