@@ -223,9 +223,9 @@ class _ProfilePageState extends State<ProfilePage> {
                       onTap: _pickDate,
                       child: AbsorbPointer(
                         child: TextFormField(
-                          decoration: InputDecoration(
+                          decoration: const InputDecoration(
                             labelText: 'Date of Birth',
-                            prefixIcon: const Icon(Icons.cake_outlined),
+                            prefixIcon: Icon(Icons.cake_outlined),
                             hintText: 'Tap to select',
                           ),
                           controller: _dobController,

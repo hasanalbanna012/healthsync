@@ -13,6 +13,7 @@ import 'doctor_list_page.dart';
 import 'health_index_page.dart';
 import 'medicine_list_page.dart';
 import 'nearby_hospital_page.dart';
+import 'notifications_page.dart';
 import 'profile_page.dart';
 
 class HomePage extends StatefulWidget {
@@ -410,7 +411,6 @@ class _HomePageState extends State<HomePage> {
             onPressed: () => Scaffold.of(context).openDrawer(),
           ),
         ),
-        
       ),
       body: Padding(
         padding: const EdgeInsets.all(AppConstants.spacingLarge),
@@ -502,13 +502,18 @@ class _HomePageState extends State<HomePage> {
               // Already on home, do nothing
               break;
             case 1:
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: const Text(AppConstants.notificationsComingSoon),
-                  backgroundColor: AppConstants.infoColor,
-                  behavior: SnackBarBehavior.floating,
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const NotificationsPage(),
                 ),
-              );
+              ).then((_) {
+                if (mounted) {
+                  setState(() {
+                    _currentIndex = 0;
+                  });
+                }
+              });
               break;
             case 2:
               Navigator.push(
