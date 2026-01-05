@@ -1,16 +1,58 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+
+import '../models/user_profile.dart';
 import '../pages/health_index_page.dart';
 import '../pages/my_doctors_page.dart';
 import '../pages/my_medicines_page.dart';
 import '../pages/profile_page.dart';
 import '../pages/privacy_policy_page.dart';
 import '../services/auth_service.dart';
+import '../services/profile_service.dart';
 
-class AppDrawer extends StatelessWidget {
+class AppDrawer extends StatefulWidget {
   const AppDrawer({super.key});
 
-  static final AuthService _authService = AuthService();
+  @override
+  State<AppDrawer> createState() => _AppDrawerState();
+}
+
+class _AppDrawerState extends State<AppDrawer> {
+  final AuthService _authService = AuthService();
+  final ProfileService _profileService = ProfileService();
+
+  UserProfile? _profile;
+  bool _isLoadingProfile = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProfile();
+  }
+
+  Future<void> _loadProfile() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      setState(() {
+        _isLoadingProfile = false;
+      });
+      return;
+    }
+
+    try {
+      final profile = await _profileService.fetchProfile(user.uid);
+      if (!mounted) return;
+      setState(() {
+        _profile = profile;
+        _isLoadingProfile = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _isLoadingProfile = false;
+      });
+    }
+  }
 
   void _showLogoutDialog(BuildContext context) {
     final messenger = ScaffoldMessenger.of(context);
@@ -53,12 +95,18 @@ class AppDrawer extends StatelessWidget {
   }
 
   @override
+  @override
   Widget build(BuildContext context) {
     final User? user = FirebaseAuth.instance.currentUser;
     final displayName = (user?.displayName?.trim().isNotEmpty ?? false)
         ? user!.displayName!
-        : 'HealthSync User';
+        : (_profile?.fullName.isNotEmpty ?? false)
+            ? _profile!.fullName
+            : 'HealthSync User';
     final email = user?.email ?? 'No email linked';
+    final photoUrl = _profile?.profileImageUrl.isNotEmpty ?? false
+        ? _profile!.profileImageUrl
+        : null;
 
     return Drawer(
       child: Column(
@@ -86,24 +134,33 @@ class AppDrawer extends StatelessWidget {
               email,
               style: const TextStyle(fontSize: 14),
             ),
-            currentAccountPicture: CircleAvatar(
-              radius: 40,
-              backgroundColor: Colors.white,
-              child: ClipOval(
-                child: Image.asset(
-                  'assets/logo.png', // Using the existing logo as placeholder
-                  width: 70,
-                  height: 70,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) {
-                    return const Icon(
-                      Icons.person,
-                      size: 40,
-                      color: Colors.grey,
-                    );
-                  },
+            currentAccountPicture: Stack(
+              alignment: Alignment.center,
+              children: [
+                CircleAvatar(
+                  radius: 40,
+                  backgroundColor: Colors.white,
+                  child: ClipOval(
+                    child: photoUrl != null
+                        ? Image.network(
+                            photoUrl,
+                            width: 70,
+                            height: 70,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) {
+                              return _buildPlaceholderAvatar();
+                            },
+                          )
+                        : _buildPlaceholderAvatar(),
+                  ),
                 ),
-              ),
+                if (_isLoadingProfile)
+                  const Positioned.fill(
+                    child: Center(
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                  ),
+              ],
             ),
           ),
 
@@ -205,6 +262,22 @@ class AppDrawer extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildPlaceholderAvatar() {
+    return Image.asset(
+      'assets/logo.png',
+      width: 70,
+      height: 70,
+      fit: BoxFit.cover,
+      errorBuilder: (context, error, stackTrace) {
+        return const Icon(
+          Icons.person,
+          size: 40,
+          color: Colors.grey,
+        );
+      },
     );
   }
 }
