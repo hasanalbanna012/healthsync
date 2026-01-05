@@ -1,0 +1,127 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return signedIn() && request.auth.uid == userId;
+    }
+
+    function validString(field, maxLength) {
+      return field is string && field.size() <= maxLength;
+    }
+
+    function validOptionalString(data, field, maxLength) {
+      return !(field in data) || validString(data[field], maxLength);
+    }
+
+    function validNumber(field, minValue, maxValue) {
+      return field is number && field >= minValue && field <= maxValue;
+    }
+
+    function validTimestamp(field) {
+      return field is timestamp;
+    }
+
+    function validRepeatDays(days) {
+      return days is list &&
+        days.size() <= 7 &&
+        days.hasOnly([1, 2, 3, 4, 5, 6, 7]);
+    }
+
+    match /users/{userId} {
+      allow read, write: if isOwner(userId);
+
+      match /alarms/{alarmId} {
+        allow read, write: if isOwner(userId);
+      }
+
+      match /bmi_records/{recordId} {
+        function validBmi(data) {
+          return data.keys().hasOnly([
+              'weight',
+              'height',
+              'bmi',
+              'category',
+              'dateRecorded',
+              'notes'
+            ]) &&
+            data.keys().hasAll(['weight', 'height', 'bmi', 'category', 'dateRecorded']) &&
+            validNumber(data.weight, 1, 500) &&
+            validNumber(data.height, 50, 300) &&
+            validNumber(data.bmi, 5, 90) &&
+            validString(data.category, 40) &&
+            validTimestamp(data.dateRecorded) &&
+            validOptionalString(data, 'notes', 1000);
+        }
+
+        allow read: if isOwner(userId);
+        allow create, update: if isOwner(userId) && validBmi(request.resource.data);
+        allow delete: if isOwner(userId);
+      }
+
+      match /savedMedicines/{medicineId} {
+        function validMedicine(data) {
+          return data.keys().hasOnly(['name', 'genericName', 'imageUrl']) &&
+            data.keys().hasAll(['name', 'genericName']) &&
+            validString(data.name, 120) &&
+            validString(data.genericName, 120) &&
+            validOptionalString(data, 'imageUrl', 2048);
+        }
+
+        allow read: if isOwner(userId);
+        allow create, update: if isOwner(userId) && validMedicine(request.resource.data);
+        allow delete: if isOwner(userId);
+      }
+
+      match /savedDoctors/{doctorId} {
+        function validDoctor(data) {
+          return data.keys().hasOnly([
+              'name',
+              'specialty',
+              'address',
+              'contactNumber',
+              'imageUrl'
+            ]) &&
+            data.keys().hasAll(['name', 'specialty', 'address']) &&
+            validString(data.name, 120) &&
+            validString(data.specialty, 120) &&
+            validString(data.address, 240) &&
+            validOptionalString(data, 'contactNumber', 60) &&
+            validOptionalString(data, 'imageUrl', 2048);
+        }
+
+        allow read: if isOwner(userId);
+        allow create, update: if isOwner(userId) && validDoctor(request.resource.data);
+        allow delete: if isOwner(userId);
+      }
+
+      match /prescriptions/{docId} {
+        allow read: if isOwner(userId);
+        allow create, update: if isOwner(userId) && validDocument(request.resource.data);
+        allow delete: if isOwner(userId);
+      }
+
+      match /test_reports/{docId} {
+        allow read: if isOwner(userId);
+        allow create, update: if isOwner(userId) && validDocument(request.resource.data);
+        allow delete: if isOwner(userId);
+      }
+
+      function validDocument(data) {
+        return data.keys().hasOnly(['downloadUrl', 'storagePath', 'dateAdded', 'fileName']) &&
+          data.keys().hasAll(['downloadUrl', 'storagePath', 'dateAdded']) &&
+          validString(data.downloadUrl, 2048) &&
+          validString(data.storagePath, 1024) &&
+          validTimestamp(data.dateAdded) &&
+          validOptionalString(data, 'fileName', 256);
+      }
+    }
+
+    match /user_profiles/{userId} {
+      allow read, write: if isOwner(userId);
+    }
+  }
+}

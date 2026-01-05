@@ -1,6 +1,3 @@
-import 'package:flutter/foundation.dart';
-import 'package:hive/hive.dart';
-
 import '../models/doctor.dart';
 import '../repositories/doctor_repository.dart';
 
@@ -17,12 +14,12 @@ class DoctorService {
     return _cachedDoctors!;
   }
 
-  List<Doctor> getSavedDoctors() => _repository.getSavedDoctors();
+  Stream<List<Doctor>> watchSavedDoctors() => _repository.watchSavedDoctors();
 
-  ValueListenable<Box<Doctor>> get savedDoctorsListenable =>
-      _repository.savedDoctorsListenable;
+  Future<List<Doctor>> fetchSavedDoctors() => _repository.fetchSavedDoctors();
 
-  bool isDoctorSaved(String doctorId) => _repository.isDoctorSaved(doctorId);
+  Future<bool> isDoctorSaved(String doctorId) =>
+      _repository.isDoctorSaved(doctorId);
 
   Future<void> saveDoctor(Doctor doctor) => _repository.saveDoctor(doctor);
 

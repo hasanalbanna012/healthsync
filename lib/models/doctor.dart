@@ -1,25 +1,9 @@
-import 'package:hive/hive.dart';
-
-part 'doctor.g.dart';
-
-@HiveType(typeId: 5)
-class Doctor extends HiveObject {
-  @HiveField(0)
+class Doctor {
   final String id;
-
-  @HiveField(1)
   final String name;
-
-  @HiveField(2)
   final String specialty;
-
-  @HiveField(3)
   final String address;
-
-  @HiveField(4)
   final String contactNumber;
-
-  @HiveField(5)
   final String imageUrl;
 
   Doctor({
@@ -30,6 +14,28 @@ class Doctor extends HiveObject {
     required this.contactNumber,
     required this.imageUrl,
   });
+
+  factory Doctor.fromMap(Map<String, dynamic> data, {required String id}) {
+    return Doctor(
+      id: id,
+      name: (data['name'] as String?)?.trim() ?? '',
+      specialty:
+          (data['specialty'] as String?)?.trim() ?? 'General Practitioner',
+      address: (data['address'] as String?)?.trim() ?? 'Address not provided',
+      contactNumber: (data['contactNumber'] as String?)?.trim() ?? '',
+      imageUrl: (data['imageUrl'] as String?)?.trim() ?? '',
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'name': name,
+      'specialty': specialty,
+      'address': address,
+      'contactNumber': contactNumber,
+      'imageUrl': imageUrl,
+    };
+  }
 
   static String buildId(String name, String specialty, int index) {
     final base = '$name-$specialty-$index'.toLowerCase();

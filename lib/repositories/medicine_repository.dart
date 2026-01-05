@@ -1,30 +1,60 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:csv/csv.dart';
-import 'package:flutter/foundation.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/services.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 
 import '../models/medicine.dart';
 
 class MedicineRepository {
-  static const String savedMedicinesBoxName = 'saved_medicines';
+  MedicineRepository({
+    FirebaseFirestore? firestore,
+    FirebaseAuth? auth,
+  })  : _firestore = firestore ?? FirebaseFirestore.instance,
+        _auth = auth ?? FirebaseAuth.instance;
+
   static const String _csvAssetPath = 'assets/data/medicine_list.csv';
 
-  Box<Medicine> get _savedBox => Hive.box<Medicine>(savedMedicinesBoxName);
+  final FirebaseFirestore _firestore;
+  final FirebaseAuth _auth;
 
-  ValueListenable<Box<Medicine>> get savedMedicinesListenable =>
-      _savedBox.listenable();
+  CollectionReference<Map<String, dynamic>> get _savedMedicinesCollection {
+    final uid = _auth.currentUser?.uid;
+    if (uid == null) {
+      throw StateError('User not authenticated');
+    }
+    return _firestore.collection('users').doc(uid).collection('savedMedicines');
+  }
 
-  List<Medicine> getSavedMedicines() =>
-      _savedBox.values.toList(growable: false);
+  Stream<List<Medicine>> watchSavedMedicines() {
+    return _savedMedicinesCollection.snapshots().map((snapshot) {
+      final medicines = snapshot.docs
+          .map((doc) => Medicine.fromMap(doc.data(), id: doc.id))
+          .toList();
+      medicines.sort((a, b) => a.name.compareTo(b.name));
+      return medicines;
+    });
+  }
 
-  bool isMedicineSaved(String medicineId) => _savedBox.containsKey(medicineId);
+  Future<List<Medicine>> fetchSavedMedicines() async {
+    final snapshot = await _savedMedicinesCollection.get();
+    final medicines = snapshot.docs
+        .map((doc) => Medicine.fromMap(doc.data(), id: doc.id))
+        .toList();
+    medicines.sort((a, b) => a.name.compareTo(b.name));
+    return medicines;
+  }
+
+  Future<bool> isMedicineSaved(String medicineId) async {
+    final doc = await _savedMedicinesCollection.doc(medicineId).get();
+    return doc.exists;
+  }
 
   Future<void> saveMedicine(Medicine medicine) async {
-    await _savedBox.put(medicine.id, medicine);
+    await _savedMedicinesCollection.doc(medicine.id).set(medicine.toMap());
   }
 
   Future<void> removeMedicine(String medicineId) async {
-    await _savedBox.delete(medicineId);
+    await _savedMedicinesCollection.doc(medicineId).delete();
   }
 
   Future<List<Medicine>> loadMedicinesFromAsset() async {

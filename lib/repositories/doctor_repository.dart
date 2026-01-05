@@ -1,30 +1,60 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:csv/csv.dart';
-import 'package:flutter/foundation.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/services.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 
 import '../models/doctor.dart';
 
 class DoctorRepository {
-  static const String savedDoctorsBoxName = 'saved_doctors';
+  DoctorRepository({
+    FirebaseFirestore? firestore,
+    FirebaseAuth? auth,
+  })  : _firestore = firestore ?? FirebaseFirestore.instance,
+        _auth = auth ?? FirebaseAuth.instance;
+
   static const String _csvAssetPath = 'assets/data/doctors_final.csv';
 
-  Box<Doctor> get _savedDoctorsBox => Hive.box<Doctor>(savedDoctorsBoxName);
+  final FirebaseFirestore _firestore;
+  final FirebaseAuth _auth;
 
-  ValueListenable<Box<Doctor>> get savedDoctorsListenable =>
-      _savedDoctorsBox.listenable();
+  CollectionReference<Map<String, dynamic>> get _savedDoctorsCollection {
+    final uid = _auth.currentUser?.uid;
+    if (uid == null) {
+      throw StateError('User not authenticated');
+    }
+    return _firestore.collection('users').doc(uid).collection('savedDoctors');
+  }
 
-  List<Doctor> getSavedDoctors() =>
-      _savedDoctorsBox.values.toList(growable: false);
+  Stream<List<Doctor>> watchSavedDoctors() {
+    return _savedDoctorsCollection.snapshots().map((snapshot) {
+      final doctors = snapshot.docs
+          .map((doc) => Doctor.fromMap(doc.data(), id: doc.id))
+          .toList();
+      doctors.sort((a, b) => a.name.compareTo(b.name));
+      return doctors;
+    });
+  }
 
-  bool isDoctorSaved(String doctorId) => _savedDoctorsBox.containsKey(doctorId);
+  Future<List<Doctor>> fetchSavedDoctors() async {
+    final snapshot = await _savedDoctorsCollection.get();
+    final doctors = snapshot.docs
+        .map((doc) => Doctor.fromMap(doc.data(), id: doc.id))
+        .toList();
+    doctors.sort((a, b) => a.name.compareTo(b.name));
+    return doctors;
+  }
+
+  Future<bool> isDoctorSaved(String doctorId) async {
+    final doc = await _savedDoctorsCollection.doc(doctorId).get();
+    return doc.exists;
+  }
 
   Future<void> saveDoctor(Doctor doctor) async {
-    await _savedDoctorsBox.put(doctor.id, doctor);
+    await _savedDoctorsCollection.doc(doctor.id).set(doctor.toMap());
   }
 
   Future<void> removeDoctor(String doctorId) async {
-    await _savedDoctorsBox.delete(doctorId);
+    await _savedDoctorsCollection.doc(doctorId).delete();
   }
 
   Future<List<Doctor>> loadDoctorsFromAsset() async {

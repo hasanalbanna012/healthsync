@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:hive/hive.dart';
-
 import '../constants/app_constants.dart';
 import '../models/medicine.dart';
 import '../services/medicine_service.dart';
@@ -19,10 +17,25 @@ class MyMedicinesPage extends StatelessWidget {
       ),
       body: Padding(
         padding: const EdgeInsets.all(AppConstants.spacingMedium),
-        child: ValueListenableBuilder<Box<Medicine>>(
-          valueListenable: medicineService.savedMedicinesListenable,
-          builder: (context, savedBox, _) {
-            if (savedBox.values.isEmpty) {
+        child: StreamBuilder<List<Medicine>>(
+          stream: medicineService.watchSavedMedicines(),
+          builder: (context, snapshot) {
+            if (snapshot.hasError) {
+              return Center(
+                child: Text(
+                  'Unable to load saved medicines.\n${snapshot.error}',
+                  textAlign: TextAlign.center,
+                ),
+              );
+            }
+
+            if (!snapshot.hasData) {
+              return const Center(child: CircularProgressIndicator());
+            }
+
+            final medicines = snapshot.data!;
+
+            if (medicines.isEmpty) {
               return Center(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -38,8 +51,6 @@ class MyMedicinesPage extends StatelessWidget {
                 ),
               );
             }
-
-            final medicines = savedBox.values.toList(growable: false);
 
             return ListView.builder(
               itemCount: medicines.length,

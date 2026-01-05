@@ -1,21 +1,28 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:path_provider/path_provider.dart';
 
 import '../constants/app_constants.dart';
 import '../services/text_detector.dart';
 
 class ImageViewer extends StatefulWidget {
-  final String imagePath;
+  final String? localImagePath;
+  final String? imageUrl;
   final String title;
   final bool enableTextDetection;
 
   const ImageViewer({
     super.key,
-    required this.imagePath,
+    this.localImagePath,
+    this.imageUrl,
     required this.title,
     this.enableTextDetection = false,
-  });
+  }) : assert(
+          localImagePath != null || imageUrl != null,
+          'Provide either a local image path or an image URL',
+        );
 
   @override
   State<ImageViewer> createState() => _ImageViewerState();
@@ -25,6 +32,8 @@ class _ImageViewerState extends State<ImageViewer> {
   final TransformationController _controller = TransformationController();
   final TextDetectorService _textDetector = TextDetectorService();
   bool _isLoading = false;
+  String? _downloadedPath;
+  bool _isDownloading = false;
 
   @override
   void dispose() {
@@ -34,12 +43,17 @@ class _ImageViewerState extends State<ImageViewer> {
   }
 
   Future<void> _detectText() async {
-    setState(() {
-      _isLoading = true;
-    });
-
     try {
-      final detectedTexts = await _textDetector.detectText(widget.imagePath);
+      final localPath = await _ensureLocalPath();
+      if (localPath == null) {
+        throw Exception('Unable to access image for text detection');
+      }
+
+      setState(() {
+        _isLoading = true;
+      });
+
+      final detectedTexts = await _textDetector.detectText(localPath);
       if (!mounted) return;
       await _showDetectedTextSheet(detectedTexts);
     } catch (e) {
@@ -115,7 +129,8 @@ class _ImageViewerState extends State<ImageViewer> {
                                   size: 48,
                                   color: AppConstants.textDisabledColor,
                                 ),
-                                const SizedBox(height: AppConstants.spacingSmall),
+                                const SizedBox(
+                                    height: AppConstants.spacingSmall),
                                 Text(
                                   AppConstants.noTextDetectedMessage,
                                   style: TextStyle(
@@ -174,6 +189,47 @@ class _ImageViewerState extends State<ImageViewer> {
     );
   }
 
+  Future<String?> _ensureLocalPath() async {
+    if (widget.localImagePath != null &&
+        File(widget.localImagePath!).existsSync()) {
+      return widget.localImagePath!;
+    }
+
+    if (_downloadedPath != null && File(_downloadedPath!).existsSync()) {
+      return _downloadedPath;
+    }
+
+    if (widget.imageUrl == null) {
+      return null;
+    }
+
+    try {
+      setState(() {
+        _isDownloading = true;
+      });
+
+      final response = await http.get(Uri.parse(widget.imageUrl!));
+      if (response.statusCode != 200) {
+        throw Exception('Download failed with status ${response.statusCode}');
+      }
+
+      final directory = await getTemporaryDirectory();
+      final filePath =
+          '${directory.path}/viewer_${DateTime.now().millisecondsSinceEpoch}.jpg';
+      final file = File(filePath);
+      await file.writeAsBytes(response.bodyBytes);
+
+      _downloadedPath = filePath;
+      return _downloadedPath;
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isDownloading = false;
+        });
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -197,7 +253,7 @@ class _ImageViewerState extends State<ImageViewer> {
               ),
               child: IconButton(
                 icon: const Icon(Icons.text_fields, color: Colors.white),
-                onPressed: _detectText,
+                onPressed: _isDownloading ? null : _detectText,
                 tooltip: 'Extract Text',
               ),
             ),
@@ -228,40 +284,13 @@ class _ImageViewerState extends State<ImageViewer> {
                   child: ClipRRect(
                     borderRadius:
                         BorderRadius.circular(AppConstants.borderRadiusSmall),
-                    child: Image.file(
-                      File(widget.imagePath),
-                      fit: BoxFit.contain,
-                      errorBuilder: (context, error, stackTrace) {
-                        return Container(
-                          width: 200,
-                          height: 200,
-                          color: AppConstants.cardColor,
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.broken_image,
-                                size: 64,
-                                color: AppConstants.textDisabledColor,
-                              ),
-                              const SizedBox(height: AppConstants.spacingSmall),
-                              Text(
-                                'Image not found',
-                                style: TextStyle(
-                                  color: AppConstants.textSecondaryColor,
-                                ),
-                              ),
-                            ],
-                          ),
-                        );
-                      },
-                    ),
+                    child: _buildImageWidget(),
                   ),
                 ),
               ),
             ),
           ),
-          if (_isLoading)
+          if (_isLoading || _isDownloading)
             Container(
               color: AppConstants.backgroundColor.withValues(alpha: 0.8),
               child: Center(
@@ -273,7 +302,9 @@ class _ImageViewerState extends State<ImageViewer> {
                     ),
                     const SizedBox(height: AppConstants.spacingMedium),
                     Text(
-                      'Extracting text...',
+                      _isDownloading
+                          ? 'Preparing image...'
+                          : 'Extracting text...',
                       style: TextStyle(
                         color: AppConstants.textSecondaryColor,
                         fontWeight: FontWeight.w500,
@@ -283,6 +314,57 @@ class _ImageViewerState extends State<ImageViewer> {
                 ),
               ),
             ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildImageWidget() {
+    if (widget.localImagePath != null) {
+      return Image.file(
+        File(widget.localImagePath!),
+        fit: BoxFit.contain,
+        errorBuilder: _errorBuilder,
+      );
+    }
+
+    return Image.network(
+      widget.imageUrl!,
+      fit: BoxFit.contain,
+      loadingBuilder: (context, child, progress) {
+        if (progress == null) return child;
+        return Center(
+          child: CircularProgressIndicator(
+            value: progress.expectedTotalBytes != null
+                ? progress.cumulativeBytesLoaded / progress.expectedTotalBytes!
+                : null,
+          ),
+        );
+      },
+      errorBuilder: _errorBuilder,
+    );
+  }
+
+  Widget _errorBuilder(BuildContext context, Object error, StackTrace? stack) {
+    return Container(
+      width: 200,
+      height: 200,
+      color: AppConstants.cardColor,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.broken_image,
+            size: 64,
+            color: AppConstants.textDisabledColor,
+          ),
+          const SizedBox(height: AppConstants.spacingSmall),
+          Text(
+            'Image not available',
+            style: TextStyle(
+              color: AppConstants.textSecondaryColor,
+            ),
+          ),
         ],
       ),
     );

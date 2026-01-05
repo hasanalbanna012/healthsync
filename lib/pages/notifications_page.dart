@@ -1,5 +1,5 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/intl.dart';
 
 import '../constants/app_constants.dart';
@@ -7,6 +7,7 @@ import '../models/bmi_record.dart';
 import '../models/doctor.dart';
 import '../models/medicine.dart';
 import '../services/doctor_service.dart';
+import '../services/health_index_service.dart';
 import '../services/medicine_service.dart';
 import 'health_index_page.dart';
 import 'my_doctors_page.dart';
@@ -19,7 +20,7 @@ class NotificationsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final medicineService = MedicineService();
     final doctorService = DoctorService();
-    final bmiBox = Hive.box<BMIRecord>('bmi_records');
+    final healthIndexService = HealthIndexService();
 
     return Scaffold(
       appBar: AppBar(
@@ -33,67 +34,97 @@ class NotificationsPage extends StatelessWidget {
             icon: Icons.health_and_safety,
             iconColor: AppConstants.successColor,
           ),
-          ValueListenableBuilder<Box<BMIRecord>>(
-            valueListenable: bmiBox.listenable(),
-            builder: (context, box, _) {
-              if (box.values.isEmpty) {
-                return const _EmptyNotification(
-                  message: 'No BMI activity yet',
-                  hint: 'Record your BMI to see updates here.',
-                );
-              }
-
-              final records = box.values.toList(growable: false)
-                ..sort(
-                  (a, b) => b.dateRecorded.compareTo(a.dateRecorded),
-                );
-
-              return Column(
-                children: [
-                  for (final record in records.take(10))
-                    _NotificationCard(
-                      icon: Icons.monitor_weight,
-                      iconColor: AppConstants.successColor,
-                      title:
-                          'BMI ${record.bmi.toStringAsFixed(1)} • ${record.category}',
-                      subtitle:
-                          'Weight ${record.weight.toStringAsFixed(1)}kg • Height ${record.height.toStringAsFixed(1)}cm',
-                      timestamp: _formatTimestamp(record.dateRecorded),
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const HealthIndexPage(),
-                          ),
-                        );
-                      },
-                    ),
-                ],
+          Builder(builder: (context) {
+            final user = FirebaseAuth.instance.currentUser;
+            if (user == null) {
+              return const _EmptyNotification(
+                message: 'Sign in for BMI updates',
+                hint: 'Log in to sync and view your BMI history.',
               );
-            },
-          ),
+            }
+
+            return StreamBuilder<List<BMIRecord>>(
+              stream: healthIndexService.watchRecords(user.uid),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+
+                if (snapshot.hasError) {
+                  return _EmptyNotification(
+                    message: 'Unable to load BMI updates',
+                    hint: '${snapshot.error}',
+                  );
+                }
+
+                final records = snapshot.data ?? [];
+                if (records.isEmpty) {
+                  return const _EmptyNotification(
+                    message: 'No BMI activity yet',
+                    hint: 'Record your BMI to see updates here.',
+                  );
+                }
+
+                return Column(
+                  children: [
+                    for (final record in records.take(10))
+                      _NotificationCard(
+                        icon: Icons.monitor_weight,
+                        iconColor: AppConstants.successColor,
+                        title:
+                            'BMI ${record.bmi.toStringAsFixed(1)} • ${record.category}',
+                        subtitle:
+                            'Weight ${record.weight.toStringAsFixed(1)}kg • Height ${record.height.toStringAsFixed(1)}cm',
+                        timestamp: _formatTimestamp(record.dateRecorded),
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const HealthIndexPage(),
+                            ),
+                          );
+                        },
+                      ),
+                  ],
+                );
+              },
+            );
+          }),
           const SizedBox(height: AppConstants.spacingLarge),
           _SectionHeader(
             title: 'My Medicines Activity',
             icon: Icons.medication,
             iconColor: AppConstants.primaryColor,
           ),
-          ValueListenableBuilder<Box<Medicine>>(
-            valueListenable: medicineService.savedMedicinesListenable,
-            builder: (context, box, _) {
-              if (box.values.isEmpty) {
+          StreamBuilder<List<Medicine>>(
+            stream: medicineService.watchSavedMedicines(),
+            builder: (context, snapshot) {
+              if (snapshot.hasError) {
+                return _EmptyNotification(
+                  message: 'Unable to load medicines',
+                  hint: '${snapshot.error}',
+                );
+              }
+
+              if (!snapshot.hasData) {
+                return const Center(child: CircularProgressIndicator());
+              }
+
+              final medicines = snapshot.data!;
+
+              if (medicines.isEmpty) {
                 return const _EmptyNotification(
                   message: 'No medicines saved',
                   hint: 'Save medicines to receive quick reminders here.',
                 );
               }
 
-              final medicines = box.values.toList(growable: false)
+              final sortedMedicines = List<Medicine>.from(medicines)
                 ..sort((a, b) => a.name.compareTo(b.name));
 
               return Column(
                 children: [
-                  for (final medicine in medicines)
+                  for (final medicine in sortedMedicines)
                     _NotificationCard(
                       icon: Icons.local_pharmacy,
                       iconColor: AppConstants.primaryColor,
@@ -118,22 +149,35 @@ class NotificationsPage extends StatelessWidget {
             icon: Icons.person,
             iconColor: AppConstants.accentColor,
           ),
-          ValueListenableBuilder<Box<Doctor>>(
-            valueListenable: doctorService.savedDoctorsListenable,
-            builder: (context, box, _) {
-              if (box.values.isEmpty) {
+          StreamBuilder<List<Doctor>>(
+            stream: doctorService.watchSavedDoctors(),
+            builder: (context, snapshot) {
+              if (snapshot.hasError) {
+                return _EmptyNotification(
+                  message: 'Unable to load doctors',
+                  hint: '${snapshot.error}',
+                );
+              }
+
+              if (!snapshot.hasData) {
+                return const Center(child: CircularProgressIndicator());
+              }
+
+              final doctors = snapshot.data!;
+
+              if (doctors.isEmpty) {
                 return const _EmptyNotification(
                   message: 'No doctors saved',
                   hint: 'Save preferred doctors for faster access.',
                 );
               }
 
-              final doctors = box.values.toList(growable: false)
+              final sortedDoctors = List<Doctor>.from(doctors)
                 ..sort((a, b) => a.name.compareTo(b.name));
 
               return Column(
                 children: [
-                  for (final doctor in doctors)
+                  for (final doctor in sortedDoctors)
                     _NotificationCard(
                       icon: Icons.person_outline,
                       iconColor: AppConstants.accentColor,

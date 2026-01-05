@@ -1,28 +1,10 @@
-import 'package:hive/hive.dart';
-
-part 'bmi_record.g.dart';
-
-@HiveType(typeId: 4)
-class BMIRecord extends HiveObject {
-  @HiveField(0)
+class BMIRecord {
   String id;
-
-  @HiveField(1)
   double weight; // in kg
-
-  @HiveField(2)
   double height; // in cm
-
-  @HiveField(3)
   double bmi;
-
-  @HiveField(4)
   String category;
-
-  @HiveField(5)
   DateTime dateRecorded;
-
-  @HiveField(6)
   String? notes;
 
   BMIRecord({
@@ -34,6 +16,62 @@ class BMIRecord extends HiveObject {
     required this.dateRecorded,
     this.notes,
   });
+
+  BMIRecord copyWith({
+    String? id,
+    double? weight,
+    double? height,
+    double? bmi,
+    String? category,
+    DateTime? dateRecorded,
+    String? notes,
+  }) {
+    return BMIRecord(
+      id: id ?? this.id,
+      weight: weight ?? this.weight,
+      height: height ?? this.height,
+      bmi: bmi ?? this.bmi,
+      category: category ?? this.category,
+      dateRecorded: dateRecorded ?? this.dateRecorded,
+      notes: notes ?? this.notes,
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'weight': weight,
+      'height': height,
+      'bmi': bmi,
+      'category': category,
+      'dateRecorded': dateRecorded.toIso8601String(),
+      'notes': notes,
+    };
+  }
+
+  factory BMIRecord.fromMap(Map<String, dynamic> data) {
+    final dateValue = data['dateRecorded'];
+    DateTime parsedDate;
+    if (dateValue is DateTime) {
+      parsedDate = dateValue;
+    } else if (dateValue is int) {
+      parsedDate = DateTime.fromMillisecondsSinceEpoch(dateValue);
+    } else if (dateValue is String) {
+      parsedDate = DateTime.tryParse(dateValue) ?? DateTime.now();
+    } else {
+      parsedDate = DateTime.now();
+    }
+
+    return BMIRecord(
+      id: (data['id'] as String?) ?? '',
+      weight: (data['weight'] as num?)?.toDouble() ?? 0,
+      height: (data['height'] as num?)?.toDouble() ?? 0,
+      bmi: (data['bmi'] as num?)?.toDouble() ?? 0,
+      category: (data['category'] as String?) ?? 'Unknown',
+      dateRecorded: parsedDate,
+      notes: data['notes'] as String?,
+    );
+  }
 
   static String getBMICategory(double bmi) {
     if (bmi < 18.5) {

@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../constants/app_constants.dart';
 import '../models/user_profile.dart';
@@ -21,16 +22,19 @@ class _ProfilePageState extends State<ProfilePage> {
   final _healthIssuesController = TextEditingController();
   final _dobController = TextEditingController();
   final ProfileService _profileService = ProfileService();
+  final ImagePicker _imagePicker = ImagePicker();
 
   DateTime? _selectedDob;
   String? _photoUrl;
   bool _isLoading = true;
   bool _isSaving = false;
+  bool _isUploadingPhoto = false;
   UserProfile? _currentProfile;
 
   @override
   void initState() {
     super.initState();
+
     _loadProfile();
   }
 
@@ -102,6 +106,56 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
+  Future<void> _changePhoto() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Sign in to update your photo.')),
+      );
+      return;
+    }
+
+    try {
+      final picked = await _imagePicker.pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 80,
+      );
+      if (picked == null) {
+        return;
+      }
+
+      setState(() {
+        _isUploadingPhoto = true;
+      });
+
+      final downloadUrl = await _profileService.uploadProfileImage(
+        user.uid,
+        picked,
+      );
+
+      if (!mounted) return;
+      setState(() {
+        _photoUrl = downloadUrl;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Profile photo updated. Remember to save.'),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to upload photo: $e')),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isUploadingPhoto = false;
+        });
+      }
+    }
+  }
+
   Future<void> _saveProfile() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -159,16 +213,44 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Widget _buildAvatar() {
-    if (_photoUrl != null && _photoUrl!.isNotEmpty) {
-      return CircleAvatar(
-        radius: 50,
-        backgroundImage: NetworkImage(_photoUrl!),
-      );
-    }
+    final avatar = _photoUrl != null && _photoUrl!.isNotEmpty
+        ? CircleAvatar(
+            radius: 50,
+            backgroundImage: NetworkImage(_photoUrl!),
+          )
+        : const CircleAvatar(
+            radius: 50,
+            child: Icon(Icons.person, size: 50),
+          );
 
-    return const CircleAvatar(
-      radius: 50,
-      child: Icon(Icons.person, size: 50),
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        avatar,
+        Positioned(
+          bottom: -4,
+          right: -4,
+          child: ElevatedButton(
+            onPressed: _isUploadingPhoto ? null : _changePhoto,
+            style: ElevatedButton.styleFrom(
+              shape: const CircleBorder(),
+              padding: const EdgeInsets.all(10),
+              backgroundColor: AppConstants.primaryColor,
+              foregroundColor: Colors.white,
+            ),
+            child: _isUploadingPhoto
+                ? const SizedBox(
+                    height: 16,
+                    width: 16,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                    ),
+                  )
+                : const Icon(Icons.camera_alt, size: 18),
+          ),
+        ),
+      ],
     );
   }
 

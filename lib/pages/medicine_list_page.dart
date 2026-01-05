@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:hive/hive.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../constants/app_constants.dart';
@@ -19,6 +18,7 @@ class _MedicineListPageState extends State<MedicineListPage> {
   final MedicineService _medicineService = MedicineService();
   final TextEditingController _searchController = TextEditingController();
   static final Uri _buyMedicineUri = Uri.parse('https://medeasy.health/');
+  late final Stream<List<Medicine>> _savedMedicinesStream;
 
   List<Medicine> _allMedicines = [];
   bool _isLoading = true;
@@ -27,6 +27,7 @@ class _MedicineListPageState extends State<MedicineListPage> {
   @override
   void initState() {
     super.initState();
+    _savedMedicinesStream = _medicineService.watchSavedMedicines();
     _loadMedicines();
     _searchController.addListener(() => setState(() {}));
   }
@@ -150,11 +151,25 @@ class _MedicineListPageState extends State<MedicineListPage> {
                       ),
                       const SizedBox(height: AppConstants.spacingMedium),
                       Expanded(
-                        child: ValueListenableBuilder<Box<Medicine>>(
-                          valueListenable:
-                              _medicineService.savedMedicinesListenable,
-                          builder: (context, savedBox, _) {
-                            final savedIds = savedBox.values
+                        child: StreamBuilder<List<Medicine>>(
+                          stream: _savedMedicinesStream,
+                          builder: (context, snapshot) {
+                            if (snapshot.hasError) {
+                              return Center(
+                                child: Text(
+                                  'Unable to sync saved medicines. ${snapshot.error}',
+                                  textAlign: TextAlign.center,
+                                ),
+                              );
+                            }
+
+                            if (!snapshot.hasData) {
+                              return const Center(
+                                child: CircularProgressIndicator(),
+                              );
+                            }
+
+                            final savedIds = snapshot.data!
                                 .map((medicine) => medicine.id)
                                 .toSet();
                             final filtered = _filteredMedicines();

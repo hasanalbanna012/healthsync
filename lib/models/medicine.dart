@@ -1,19 +1,7 @@
-import 'package:hive/hive.dart';
-
-part 'medicine.g.dart';
-
-@HiveType(typeId: 6)
-class Medicine extends HiveObject {
-  @HiveField(0)
+class Medicine {
   final String id;
-
-  @HiveField(1)
   final String name;
-
-  @HiveField(2)
   final String genericName;
-
-  @HiveField(3)
   final String imageUrl;
 
   Medicine({
@@ -22,6 +10,24 @@ class Medicine extends HiveObject {
     required this.genericName,
     required this.imageUrl,
   });
+
+  factory Medicine.fromMap(Map<String, dynamic> data, {required String id}) {
+    return Medicine(
+      id: id,
+      name: (data['name'] as String?)?.trim() ?? '',
+      genericName:
+          (data['genericName'] as String?)?.trim() ?? 'Generic not specified',
+      imageUrl: (data['imageUrl'] as String?)?.trim() ?? '',
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'name': name,
+      'genericName': genericName,
+      'imageUrl': imageUrl,
+    };
+  }
 
   static String buildId(String name, String generic, int index) {
     final base = '$name-$generic-$index'.toLowerCase();

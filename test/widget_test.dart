@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:healthsync/models/bmi_record.dart';
 
 void main() {
   group('HealthSync App Tests', () {
@@ -9,15 +10,10 @@ void main() {
       expect(appName.length, greaterThan(0));
     });
 
-    test('Prescription model properties', () {
-      // Test basic string properties that don't require Hive
-      final testId = DateTime.now().millisecondsSinceEpoch.toString();
-      const testPath = '/test/path/image.jpg';
-      final testDate = DateTime.now();
-
-      expect(testId, isNotEmpty);
-      expect(testPath, contains('.jpg'));
-      expect(testDate, isA<DateTime>());
+    test('BMIRecord calculation helpers work', () {
+      final bmi = BMIRecord.calculateBMI(70, 175);
+      expect(bmi, closeTo(22.86, 0.01));
+      expect(BMIRecord.getBMICategory(bmi), equals('Normal weight'));
     });
   });
 }

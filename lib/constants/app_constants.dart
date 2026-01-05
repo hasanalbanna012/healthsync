@@ -73,14 +73,7 @@ class AppConstants {
   static const double imageMaxWidth = 1024;
   static const double imageMaxHeight = 1024;
 
-  // Box Names
-  static const String prescriptionsBox = 'prescriptions';
-  static const String testReportsBox = 'test_reports';
-
   // Messages
-  static const String prescriptionAddedMessage =
-      'Prescription added successfully';
-  static const String testReportAddedMessage = 'Test report added successfully';
   static const String imagePickErrorMessage = 'Error picking image';
   static const String noTextDetectedMessage = 'No text detected';
 

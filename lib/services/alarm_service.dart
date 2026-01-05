@@ -19,6 +19,7 @@ class AlarmService {
 
   final FlutterLocalNotificationsPlugin _flutterLocalNotificationsPlugin =
       FlutterLocalNotificationsPlugin();
+  final AlarmRepository _alarmRepository = AlarmRepository();
 
   bool _isInitialized = false;
 
@@ -139,8 +140,7 @@ class AlarmService {
       }
 
       // Get the alarm from repository
-      final alarmRepository = AlarmRepository();
-      final alarm = await alarmRepository.getAlarmById(alarmId);
+      final alarm = await _alarmRepository.getAlarmById(alarmId);
 
       if (alarm != null) {
         if (kDebugMode) {
@@ -478,8 +478,7 @@ class AlarmService {
       await stopAlarmService();
 
       // Get alarm from repository
-      final alarmRepository = AlarmRepository();
-      final alarm = await alarmRepository.getAlarmById(alarmId);
+      final alarm = await _alarmRepository.getAlarmById(alarmId);
       if (alarm != null) {
         // Schedule snooze alarm
         final snoozeTime = DateTime.now().add(Duration(minutes: snoozeMinutes));

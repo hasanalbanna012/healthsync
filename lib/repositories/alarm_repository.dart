@@ -1,95 +1,134 @@
-import 'package:hive/hive.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+
 import '../models/alarm.dart';
 
 class AlarmRepository {
-  static const String _boxName = 'alarms';
-  
-  Future<Box<Alarm>> get _box async => await Hive.openBox<Alarm>(_boxName);
+  AlarmRepository({
+    FirebaseFirestore? firestore,
+    FirebaseAuth? auth,
+  })  : _firestore = firestore ?? FirebaseFirestore.instance,
+        _auth = auth ?? FirebaseAuth.instance;
+
+  final FirebaseFirestore _firestore;
+  final FirebaseAuth _auth;
+
+  CollectionReference<Map<String, dynamic>> get _alarmsCollection {
+    final uid = _auth.currentUser?.uid;
+    if (uid == null) {
+      throw StateError('User not authenticated');
+    }
+    return _firestore.collection('users').doc(uid).collection('alarms');
+  }
 
   Future<List<Alarm>> getAllAlarms() async {
-    final box = await _box;
-    return box.values.toList()..sort((a, b) => a.dateTime.compareTo(b.dateTime));
+    final snapshot = await _alarmsCollection.orderBy('dateTime').get();
+    return snapshot.docs
+        .map((doc) => Alarm.fromMap(doc.data(), id: doc.id))
+        .toList();
   }
 
   Future<List<Alarm>> getActiveAlarms() async {
-    final alarms = await getAllAlarms();
-    return alarms.where((alarm) => alarm.isActive).toList();
+    final snapshot =
+        await _alarmsCollection.where('isActive', isEqualTo: true).get();
+    final alarms = snapshot.docs
+        .map((doc) => Alarm.fromMap(doc.data(), id: doc.id))
+        .toList();
+    alarms.sort((a, b) => a.dateTime.compareTo(b.dateTime));
+    return alarms;
   }
 
   Future<List<Alarm>> getUpcomingAlarms({int days = 7}) async {
     final now = DateTime.now();
     final endDate = now.add(Duration(days: days));
-    
-    final alarms = await getActiveAlarms();
-    return alarms.where((alarm) {
+    final activeAlarms = await getActiveAlarms();
+
+    return activeAlarms.where((alarm) {
       final nextTime = alarm.nextAlarmTime;
-      return nextTime != null && 
-             nextTime.isBefore(endDate) && 
-             nextTime.isAfter(now);
+      return nextTime != null &&
+          nextTime.isAfter(now) &&
+          nextTime.isBefore(endDate);
     }).toList();
   }
 
   Future<List<Alarm>> getAlarmsByType(AlarmType type) async {
-    final alarms = await getAllAlarms();
-    return alarms.where((alarm) => alarm.type == type).toList();
+    final snapshot =
+        await _alarmsCollection.where('type', isEqualTo: type.name).get();
+    final alarms = snapshot.docs
+        .map((doc) => Alarm.fromMap(doc.data(), id: doc.id))
+        .toList();
+    alarms.sort((a, b) => a.dateTime.compareTo(b.dateTime));
+    return alarms;
   }
 
   Future<List<Alarm>> getMedicationAlarms() async {
-    return await getAlarmsByType(AlarmType.medication);
+    return getAlarmsByType(AlarmType.medication);
   }
 
   Future<Alarm?> getAlarmById(String id) async {
-    final box = await _box;
-    return box.values.firstWhere(
-      (alarm) => alarm.id == id,
-      orElse: () => throw StateError('Alarm not found'),
-    );
+    final doc = await _alarmsCollection.doc(id).get();
+    if (!doc.exists || doc.data() == null) {
+      return null;
+    }
+    return Alarm.fromMap(doc.data()!, id: doc.id);
   }
 
   Future<void> saveAlarm(Alarm alarm) async {
-    final box = await _box;
-    await box.put(alarm.id, alarm);
+    await _alarmsCollection.doc(alarm.id).set(alarm.toMap());
   }
 
   Future<void> updateAlarm(Alarm alarm) async {
-    await saveAlarm(alarm);
+    await _alarmsCollection.doc(alarm.id).set(alarm.toMap());
   }
 
   Future<void> deleteAlarm(String id) async {
-    final box = await _box;
-    await box.delete(id);
+    await _alarmsCollection.doc(id).delete();
   }
 
   Future<void> toggleAlarmStatus(String id) async {
     final alarm = await getAlarmById(id);
-    if (alarm != null) {
-      alarm.isActive = !alarm.isActive;
-      await updateAlarm(alarm);
-    }
+    if (alarm == null) return;
+
+    await updateAlarm(alarm.copyWith(isActive: !alarm.isActive));
   }
 
   Future<void> deleteAllAlarms() async {
-    final box = await _box;
-    await box.clear();
+    final snapshot = await _alarmsCollection.get();
+    final batch = _firestore.batch();
+    for (final doc in snapshot.docs) {
+      batch.delete(doc.reference);
+    }
+    await batch.commit();
   }
 
   Future<int> getAlarmCount() async {
-    final box = await _box;
-    return box.length;
+    final snapshot = await _alarmsCollection.get();
+    return snapshot.size;
   }
 
   Future<int> getActiveAlarmCount() async {
-    final alarms = await getActiveAlarms();
-    return alarms.length;
+    final snapshot =
+        await _alarmsCollection.where('isActive', isEqualTo: true).get();
+    return snapshot.size;
   }
 
-  Stream<List<Alarm>> watchAlarms() async* {
-    final box = await _box;
-    yield* box.watch().asyncMap((_) async => await getAllAlarms());
+  Stream<List<Alarm>> watchAlarms() {
+    return _alarmsCollection.orderBy('dateTime').snapshots().map((snapshot) =>
+        snapshot.docs
+            .map((doc) => Alarm.fromMap(doc.data(), id: doc.id))
+            .toList());
   }
 
-  Stream<List<Alarm>> watchActiveAlarms() async* {
-    final box = await _box;
-    yield* box.watch().asyncMap((_) async => await getActiveAlarms());
+  Stream<List<Alarm>> watchActiveAlarms() {
+    return _alarmsCollection
+        .where('isActive', isEqualTo: true)
+        .snapshots()
+        .map((snapshot) {
+      final alarms = snapshot.docs
+          .map((doc) => Alarm.fromMap(doc.data(), id: doc.id))
+          .toList();
+      alarms.sort((a, b) => a.dateTime.compareTo(b.dateTime));
+      return alarms;
+    });
   }
 }

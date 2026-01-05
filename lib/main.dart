@@ -2,14 +2,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 
-import 'models/alarm.dart';
-import 'models/bmi_record.dart';
-import 'models/doctor.dart';
-import 'models/medicine.dart';
-import 'models/prescription.dart';
-import 'models/test_report.dart';
+import 'firebase_options.dart';
 import 'pages/alarm_ring_screen.dart';
 import 'pages/auth/login_page.dart';
 import 'pages/home_page.dart';
@@ -21,44 +15,15 @@ import 'theme/app_theme.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize Hive
-  await Hive.initFlutter();
-
-  // Register Hive Adapters
-  Hive.registerAdapter(PrescriptionAdapter());
-  Hive.registerAdapter(TestReportAdapter());
-  Hive.registerAdapter(AlarmAdapter());
-  Hive.registerAdapter(AlarmTypeAdapter());
-  Hive.registerAdapter(BMIRecordAdapter());
-  Hive.registerAdapter(DoctorAdapter());
-  Hive.registerAdapter(MedicineAdapter());
-
-  // Open the boxes safely
-  await _openBoxSafely<Prescription>('prescriptions');
-  await _openBoxSafely<TestReport>('test_reports');
-  await _openBoxSafely<Alarm>('alarms');
-  await _openBoxSafely<BMIRecord>('bmi_records');
-  await _openBoxSafely<Doctor>('saved_doctors');
-  await _openBoxSafely<Medicine>('saved_medicines');
-
   // Initialize Firebase
-  await Firebase.initializeApp();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
 
   // Initialize alarm service
   await AlarmService().initialize();
 
   runApp(const MyApp());
-}
-
-Future<void> _openBoxSafely<T>(String boxName) async {
-  try {
-    await Hive.openBox<T>(boxName);
-  } catch (e) {
-    debugPrint('Error opening box $boxName: $e');
-    // If the box is corrupted or has schema mismatch, delete it and recreate
-    await Hive.deleteBoxFromDisk(boxName);
-    await Hive.openBox<T>(boxName);
-  }
 }
 
 class MyApp extends StatefulWidget {

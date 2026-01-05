@@ -16,59 +16,64 @@ class AlarmPage extends StatefulWidget {
 class _AlarmPageState extends State<AlarmPage> {
   final AlarmRepository _alarmRepository = AlarmRepository();
   final AlarmService _alarmService = AlarmService();
-  List<Alarm> _alarms = [];
-  bool _isLoading = true;
+  late final Stream<List<Alarm>> _alarmStream;
+  bool _isInitializing = true;
 
   @override
   void initState() {
     super.initState();
+    _alarmStream = _alarmRepository.watchAlarms();
     _initializeAlarms();
   }
 
   Future<void> _initializeAlarms() async {
-    await _alarmService.initialize();
-    await _loadAlarms();
-  }
-
-  Future<void> _loadAlarms() async {
     try {
-      final alarms = await _alarmRepository.getAllAlarms();
-      setState(() {
-        _alarms = alarms;
-        _isLoading = false;
-      });
+      await _alarmService.initialize();
     } catch (e) {
-      setState(() {
-        _isLoading = false;
-      });
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error loading alarms: $e')),
+          SnackBar(content: Text('Error initializing alarms: $e')),
         );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isInitializing = false;
+        });
       }
     }
   }
 
-  Future<void> _toggleAlarm(Alarm alarm) async {
+  Future<void> _toggleAlarm(Alarm alarm, bool isActive) async {
     try {
-      alarm.isActive = !alarm.isActive;
-      await _alarmRepository.updateAlarm(alarm);
-      await _alarmService.updateAlarmStatus(alarm);
-      await _loadAlarms();
+      if (mounted) {
+        setState(() {
+          alarm.isActive = isActive;
+        });
+      }
+
+      final updatedAlarm = alarm.copyWith(isActive: isActive);
+      await _alarmRepository.updateAlarm(updatedAlarm);
+      await _alarmService.updateAlarmStatus(updatedAlarm);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              alarm.isActive ? 'Alarm activated' : 'Alarm deactivated',
+              isActive ? 'Alarm activated' : 'Alarm deactivated',
             ),
-            backgroundColor: alarm.isActive
+            backgroundColor: isActive
                 ? AppConstants.primaryColor
                 : AppConstants.textDisabledColor,
           ),
         );
       }
     } catch (e) {
+      if (mounted) {
+        setState(() {
+          alarm.isActive = !isActive;
+        });
+      }
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error updating alarm: $e')),
@@ -81,7 +86,6 @@ class _AlarmPageState extends State<AlarmPage> {
     try {
       await _alarmService.cancelAlarm(alarm.id);
       await _alarmRepository.deleteAlarm(alarm.id);
-      await _loadAlarms();
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -127,6 +131,7 @@ class _AlarmPageState extends State<AlarmPage> {
   }
 
   Future<void> _editAlarm(Alarm alarm) async {
+    final messenger = ScaffoldMessenger.of(context);
     final result = await Navigator.push<bool>(
       context,
       MaterialPageRoute(
@@ -134,8 +139,15 @@ class _AlarmPageState extends State<AlarmPage> {
       ),
     );
 
+    if (!mounted) return;
+
     if (result == true) {
-      await _loadAlarms();
+      messenger.showSnackBar(
+        SnackBar(
+          content: const Text('Alarm updated'),
+          backgroundColor: AppConstants.primaryColor,
+        ),
+      );
     }
   }
 
@@ -148,21 +160,53 @@ class _AlarmPageState extends State<AlarmPage> {
         foregroundColor: Colors.white,
         elevation: 0,
       ),
-      body: _isLoading
+      body: _isInitializing
           ? const Center(child: CircularProgressIndicator())
-          : _alarms.isEmpty
-              ? _buildEmptyState()
-              : _buildAlarmList(),
+          : StreamBuilder<List<Alarm>>(
+              stream: _alarmStream,
+              builder: (context, snapshot) {
+                if (snapshot.hasError) {
+                  return Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(AppConstants.spacingLarge),
+                      child: Text(
+                        'Failed to load alarms. Pull to refresh or try again later.\n${snapshot.error}',
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  );
+                }
+
+                if (!snapshot.hasData) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+
+                final alarms = snapshot.data!;
+                if (alarms.isEmpty) {
+                  return _buildEmptyState();
+                }
+
+                return _buildAlarmList(alarms);
+              },
+            ),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
+          final messenger = ScaffoldMessenger.of(context);
           final result = await Navigator.push<bool>(
             context,
             MaterialPageRoute(
               builder: (context) => const AddAlarmPage(),
             ),
           );
+          if (!mounted) return;
+
           if (result == true) {
-            await _loadAlarms();
+            messenger.showSnackBar(
+              SnackBar(
+                content: const Text('Alarm created'),
+                backgroundColor: AppConstants.primaryColor,
+              ),
+            );
           }
         },
         backgroundColor: AppConstants.primaryColor,
@@ -202,12 +246,15 @@ class _AlarmPageState extends State<AlarmPage> {
     );
   }
 
-  Widget _buildAlarmList() {
-    final activeAlarms = _alarms.where((alarm) => alarm.isActive).toList();
-    final inactiveAlarms = _alarms.where((alarm) => !alarm.isActive).toList();
+  Widget _buildAlarmList(List<Alarm> alarms) {
+    final activeAlarms = alarms.where((alarm) => alarm.isActive).toList();
+    final inactiveAlarms = alarms.where((alarm) => !alarm.isActive).toList();
 
     return RefreshIndicator(
-      onRefresh: _loadAlarms,
+      onRefresh: () async {
+        // Force a one-time fetch to ensure sync completes when user pulls down.
+        await _alarmRepository.getAllAlarms();
+      },
       color: AppConstants.primaryColor,
       child: ListView(
         padding: const EdgeInsets.all(AppConstants.spacingMedium),
@@ -338,7 +385,7 @@ class _AlarmPageState extends State<AlarmPage> {
           children: [
             Switch(
               value: alarm.isActive,
-              onChanged: (_) => _toggleAlarm(alarm),
+              onChanged: (value) => _toggleAlarm(alarm, value),
               activeColor: AppConstants.primaryColor,
             ),
             PopupMenuButton<String>(

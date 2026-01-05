@@ -6,7 +6,7 @@ A comprehensive health management Flutter application with a refreshing green th
 
 - 📸 **Document Capture**: Take photos or import images of prescriptions and test reports
 - 🔍 **Text Recognition**: Extract and search text from medical documents using ML Kit
-- 💾 **Local Storage**: Secure offline storage using Hive database
+- ☁️ **Cloud Sync**: Securely store and sync data with Firebase
 - 🏥 **Organization**: Categorize documents by type (prescriptions, test reports)
 - 🔍 **Interactive Viewer**: Zoom and pan through document images
 - 🌐 **Quick Search**: Search extracted text directly on Google
@@ -37,12 +37,7 @@ cd healthsync
 flutter pub get
 ```
 
-3. Generate Hive adapters:
-```bash
-flutter packages pub run build_runner build
-```
-
-4. Run the application:
+3. Run the application:
 ```bash
 flutter run
 ```
@@ -53,8 +48,8 @@ flutter run
 lib/
 ├── main.dart                 # App entry point
 ├── models/                   # Data models
-│   ├── prescription.dart     # Prescription model
-│   └── test_report.dart      # Test report model
+│   ├── medical_document.dart # Prescription & test report metadata
+│   └── bmi_record.dart       # BMI history entries
 ├── pages/                    # App screens
 │   └── home_page.dart        # Main home screen
 ├── services/                 # Business logic
@@ -67,7 +62,7 @@ lib/
 ## Technologies Used
 
 - **Flutter**: Cross-platform mobile development
-- **Hive**: Lightweight NoSQL database for local storage
+- **Firebase (Auth, Firestore, Storage)**: Secure cloud sync for user data
 - **Google ML Kit**: Text recognition from images
 - **Image Picker**: Camera and gallery integration
 - **URL Launcher**: External link handling

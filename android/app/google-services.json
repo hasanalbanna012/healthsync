@@ -1,34 +1,41 @@
 {
   "project_info": {
-    "project_number": "743593177082",
-    "project_id": "healthsync-4b286",
-    "storage_bucket": "healthsync-4b286.firebasestorage.app"
+    "project_number": "250735338958",
+    "project_id": "healthsync-f3231",
+    "storage_bucket": "healthsync-f3231.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:743593177082:android:9190fa7b123e9b176c3e43",
+        "mobilesdk_app_id": "1:250735338958:android:e2a660afd5befd6115379f",
         "android_client_info": {
           "package_name": "com.example.healthsync"
         }
       },
       "oauth_client": [
         {
-          "client_id": "743593177082-26dpg21om2il9arjbd9vqv1787kk76f9.apps.googleusercontent.com",
+          "client_id": "250735338958-788lieo5j8r7lrudj87q599t56f264p1.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyA1Wgadn4_xPnS7BZLGxoGLR1yHM2hHEMk"
+          "current_key": "AIzaSyBNvtZBDgkyo9omVkpepEmOWsO6M69KY4c"
         }
       ],
       "services": {
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "743593177082-26dpg21om2il9arjbd9vqv1787kk76f9.apps.googleusercontent.com",
+              "client_id": "250735338958-788lieo5j8r7lrudj87q599t56f264p1.apps.googleusercontent.com",
               "client_type": 3
+            },
+            {
+              "client_id": "250735338958-ism4amvjgaorjaf09ihc1kmcuvhu9uq5.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.healthsync"
+              }
             }
           ]
         }

@@ -1,8 +1,10 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/intl.dart';
-import '../models/bmi_record.dart';
+
 import '../constants/app_constants.dart';
+import '../models/bmi_record.dart';
+import '../services/health_index_service.dart';
 
 class HealthIndexPage extends StatefulWidget {
   const HealthIndexPage({super.key});
@@ -16,6 +18,7 @@ class _HealthIndexPageState extends State<HealthIndexPage> {
   final _heightController = TextEditingController();
   final _notesController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
+  final HealthIndexService _healthIndexService = HealthIndexService();
 
   double? _calculatedBMI;
   String? _bmiCategory;
@@ -59,6 +62,17 @@ class _HealthIndexPageState extends State<HealthIndexPage> {
       return;
     }
 
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Sign in to save BMI records'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
     final record = BMIRecord(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       weight: double.parse(_weightController.text),
@@ -69,7 +83,18 @@ class _HealthIndexPageState extends State<HealthIndexPage> {
       notes: _notesController.text.isEmpty ? null : _notesController.text,
     );
 
-    await Hive.box<BMIRecord>('bmi_records').add(record);
+    try {
+      await _healthIndexService.saveRecord(user.uid, record);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Unable to save BMI record: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
 
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -88,6 +113,35 @@ class _HealthIndexPageState extends State<HealthIndexPage> {
         _bmiCategory = null;
       });
     }
+  }
+
+  Future<void> _deleteRecord(BMIRecord record) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      messenger.showSnackBar(
+        const SnackBar(
+          content: Text('Sign in to delete BMI records'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    String? errorMessage;
+    try {
+      await _healthIndexService.deleteRecord(user.uid, record.id);
+    } catch (e) {
+      errorMessage = 'Unable to delete record: $e';
+    }
+
+    if (!mounted) return;
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text(errorMessage ?? 'Record deleted'),
+        backgroundColor: errorMessage == null ? Colors.red : Colors.orange,
+      ),
+    );
   }
 
   Color _getBMIColor(String category) {
@@ -419,36 +473,24 @@ class _HealthIndexPageState extends State<HealthIndexPage> {
             ),
             const SizedBox(height: 12),
 
-            ValueListenableBuilder(
-              valueListenable: Hive.box<BMIRecord>('bmi_records').listenable(),
-              builder: (context, Box<BMIRecord> box, _) {
-                if (box.isEmpty) {
+            Builder(
+              builder: (context) {
+                final user = FirebaseAuth.instance.currentUser;
+                if (user == null) {
                   return Card(
                     child: Padding(
                       padding: const EdgeInsets.all(32),
                       child: Column(
                         children: [
                           Icon(
-                            Icons.history,
-                            size: 64,
-                            color: Colors.grey[400],
+                            Icons.lock_outline,
+                            size: 48,
+                            color: Colors.grey[500],
                           ),
                           const SizedBox(height: 16),
-                          Text(
-                            'No BMI records yet',
-                            style: TextStyle(
-                              fontSize: 18,
-                              color: Colors.grey[600],
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Calculate and save your first BMI to see history',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Colors.grey[500],
-                            ),
-                            textAlign: TextAlign.center,
+                          const Text(
+                            'Sign in to view BMI history',
+                            style: TextStyle(fontSize: 16),
                           ),
                         ],
                       ),
@@ -456,77 +498,131 @@ class _HealthIndexPageState extends State<HealthIndexPage> {
                   );
                 }
 
-                final records = box.values.toList().reversed.toList();
+                return StreamBuilder<List<BMIRecord>>(
+                  stream: _healthIndexService.watchRecords(user.uid),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
 
-                return ListView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: records.length,
-                  itemBuilder: (context, index) {
-                    final record = records[index];
-                    return Card(
-                      margin: const EdgeInsets.only(bottom: 8),
-                      child: ListTile(
-                        leading: CircleAvatar(
-                          backgroundColor: _getBMIColor(record.category),
-                          child: Text(
-                            record.bmi.toStringAsFixed(1),
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 12,
-                            ),
-                          ),
-                        ),
-                        title: Text(
-                          record.category,
-                          style: TextStyle(
-                            fontWeight: FontWeight.w600,
-                            color: _getBMIColor(record.category),
-                          ),
-                        ),
-                        subtitle: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Weight: ${record.weight}kg • Height: ${record.height}cm',
-                              style: const TextStyle(fontSize: 12),
-                            ),
-                            Text(
-                              _formatDate(record.dateRecorded),
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: Colors.grey[600],
+                    if (snapshot.hasError) {
+                      return Card(
+                        child: Padding(
+                          padding: const EdgeInsets.all(32),
+                          child: Column(
+                            children: [
+                              Icon(
+                                Icons.error_outline,
+                                size: 48,
+                                color: Colors.red[400],
                               ),
-                            ),
-                            if (record.notes != null) ...[
-                              const SizedBox(height: 4),
+                              const SizedBox(height: 16),
                               Text(
-                                record.notes!,
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontStyle: FontStyle.italic,
-                                  color: Colors.grey[700],
-                                ),
+                                'Unable to load BMI records\n${snapshot.error}',
+                                textAlign: TextAlign.center,
                               ),
                             ],
-                          ],
+                          ),
                         ),
-                        trailing: IconButton(
-                          icon: const Icon(Icons.delete, color: Colors.red),
-                          onPressed: () async {
-                            final messenger = ScaffoldMessenger.of(context);
-                            await record.delete();
-                            if (!context.mounted) return;
-                            messenger.showSnackBar(
-                              const SnackBar(
-                                content: Text('Record deleted'),
-                                backgroundColor: Colors.red,
+                      );
+                    }
+
+                    final records = snapshot.data ?? [];
+                    if (records.isEmpty) {
+                      return Card(
+                        child: Padding(
+                          padding: const EdgeInsets.all(32),
+                          child: Column(
+                            children: [
+                              Icon(
+                                Icons.history,
+                                size: 64,
+                                color: Colors.grey[400],
                               ),
-                            );
-                          },
+                              const SizedBox(height: 16),
+                              Text(
+                                'No BMI records yet',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  color: Colors.grey[600],
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                'Calculate and save your first BMI to see history',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.grey[500],
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
+                      );
+                    }
+
+                    return ListView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: records.length,
+                      itemBuilder: (context, index) {
+                        final record = records[index];
+                        return Card(
+                          margin: const EdgeInsets.only(bottom: 8),
+                          child: ListTile(
+                            leading: CircleAvatar(
+                              backgroundColor: _getBMIColor(record.category),
+                              child: Text(
+                                record.bmi.toStringAsFixed(1),
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ),
+                            title: Text(
+                              record.category,
+                              style: TextStyle(
+                                fontWeight: FontWeight.w600,
+                                color: _getBMIColor(record.category),
+                              ),
+                            ),
+                            subtitle: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Weight: ${record.weight}kg • Height: ${record.height}cm',
+                                  style: const TextStyle(fontSize: 12),
+                                ),
+                                Text(
+                                  _formatDate(record.dateRecorded),
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: Colors.grey[600],
+                                  ),
+                                ),
+                                if (record.notes != null) ...[
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    record.notes!,
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontStyle: FontStyle.italic,
+                                      color: Colors.grey[700],
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            ),
+                            trailing: IconButton(
+                              icon: const Icon(Icons.delete, color: Colors.red),
+                              onPressed: () => _deleteRecord(record),
+                            ),
+                          ),
+                        );
+                      },
                     );
                   },
                 );
